@@ -1,17 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
-
-function Flashcard({ q, a }) {
-  const [flipped, setFlipped] = useState(false);
-  return (
-    <button type="button" className={flipped ? 'flashcard flashcard-flipped' : 'flashcard'} onClick={() => setFlipped((v) => !v)}>
-      <span className="flashcard-label">{flipped ? 'Answer' : 'Question'}</span>
-      <span className="flashcard-text">{flipped ? a : q}</span>
-      <span className="flashcard-hint">Tap to flip</span>
-    </button>
-  );
-}
+import FlashcardStack from '../components/FlashcardStack.jsx';
 
 export default function Reviewer() {
   const { id } = useParams();
@@ -46,56 +36,67 @@ export default function Reviewer() {
     );
   }
 
+  const list = (title, emoji, items) => {
+    if (!items || items.length === 0) return null;
+    return (
+      <section className="panel">
+        <h2>{emoji} {title}</h2>
+        <ul className="guide-list">
+          {items.map((item, i) => <li key={i}>{item}</li>)}
+        </ul>
+      </section>
+    );
+  };
+
   return (
     <>
       <h1>{reviewer.documentName}</h1>
 
       <section className="panel">
-        <h2>Summary</h2>
-        <p className="reviewer-summary">{reviewer.summary}</p>
+        <h2>📌 Overview</h2>
+        <p className="reviewer-summary">{reviewer.overview}</p>
       </section>
 
-      {reviewer.primaryTopics.length > 0 && (
+      {list('Learning Objectives', '🎯', reviewer.learningObjectives)}
+      {list('Key Takeaways', '⭐', reviewer.keyTakeaways)}
+
+      {reviewer.importantTopics.length > 0 && (
         <section className="panel">
-          <h2>Primary topics</h2>
-          <ul className="chips">
-            {reviewer.primaryTopics.map((t) => (
-              <li key={t} className="chip chip-primary">{t}</li>
-            ))}
-          </ul>
+          <h2>🔥 Important Topics</h2>
+          <ul className="chips">{reviewer.importantTopics.map((t) => <li key={t} className="chip chip-primary">{t}</li>)}</ul>
         </section>
       )}
 
       {reviewer.minorTopics.length > 0 && (
         <section className="panel">
-          <h2>Minor topics</h2>
-          <ul className="chips">
-            {reviewer.minorTopics.map((t) => (
-              <li key={t} className="chip">{t}</li>
-            ))}
-          </ul>
+          <h2>📚 Minor Topics</h2>
+          <ul className="chips">{reviewer.minorTopics.map((t) => <li key={t} className="chip">{t}</li>)}</ul>
         </section>
       )}
 
-      {reviewer.funFacts.length > 0 && (
+      {reviewer.keyTerms.length > 0 && (
         <section className="panel">
-          <h2>Fun facts</h2>
-          <ul className="fun-facts">
-            {reviewer.funFacts.map((f, i) => (
-              <li key={i}>{f}</li>
+          <h2>📖 Key Terms</h2>
+          <dl className="term-list">
+            {reviewer.keyTerms.map((t, i) => (
+              <div key={i} className="term-row">
+                <dt>{t.term}</dt>
+                <dd>{t.definition}</dd>
+              </div>
             ))}
-          </ul>
+          </dl>
         </section>
       )}
+
+      {list('Concept Relationships', '🔗', reviewer.conceptRelationships)}
+      {list('Examples', '📝', reviewer.examples)}
+      {list('Common Misconceptions', '⚠️', reviewer.commonMisconceptions)}
+      {list('Fun Facts', '💡', reviewer.funFacts)}
 
       {reviewer.flashcards.length > 0 && (
         <section className="panel">
-          <h2>Flashcards</h2>
-          <div className="flashcard-grid">
-            {reviewer.flashcards.map((f, i) => (
-              <Flashcard key={i} q={f.question} a={f.answer} />
-            ))}
-          </div>
+          <h2>🗂️ Flashcards</h2>
+          <FlashcardStack cards={reviewer.flashcards} />
         </section>
       )}
 

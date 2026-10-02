@@ -31,10 +31,8 @@ router.post('/generate', async (req, res, next) => {
 
     await reviewer.save();
 
-    // Feeds the admin dashboard's "quizzes generated" / "most generated topics" numbers.
-    // Never let a logging failure break the response the student is waiting on.
     if (reviewer.status === 'ready') {
-      const topic = reviewer.primaryTopics[0] || document.originalName;
+      const topic = reviewer.importantTopics[0] || reviewer.minorTopics[0] || document.originalName;
       await recordGeneration({ userId: req.user.id, type: 'summary', topic }).catch(() => {});
       if (reviewer.flashcards.length) {
         await recordGeneration({ userId: req.user.id, type: 'flashcards', topic }).catch(() => {});

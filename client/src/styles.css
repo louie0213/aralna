@@ -165,26 +165,42 @@ tbody tr:last-child td { border-bottom: 0; }
 
 .reviewer-summary { white-space: pre-wrap; line-height: 1.7; }
 
+.guide-list { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.guide-list li { line-height: 1.5; }
+
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .chip { padding: 6px 14px; font-size: 0.9rem; font-weight: 700; color: var(--ink); background: var(--chalk); border: 1px solid var(--line); border-radius: 999px; }
 .chip-primary { color: #14301f; background: var(--mark); border-color: transparent; }
 
-.fun-facts { margin: 0; padding-left: 20px; }
-.fun-facts li { margin-bottom: 8px; }
+.term-list { margin: 0; display: grid; gap: 14px; }
+.term-row { padding: 12px 14px; background: var(--chalk); border-radius: 10px; }
+.term-row dt { font-weight: 700; font-family: var(--font-head); margin-bottom: 4px; }
+.term-row dd { margin: 0; color: var(--text); line-height: 1.5; }
 
-.flashcard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
-.flashcard {
-  display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px;
-  min-height: 140px; padding: 18px; text-align: left; cursor: pointer;
-  background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+/* Flashcard stack */
+.stack-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.stack { position: relative; width: 100%; max-width: 420px; min-height: 180px; }
+.stack-ghost {
+  position: absolute; inset: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
 }
-.flashcard:hover { border-color: var(--ink); }
-.flashcard:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--mark); }
-.flashcard-flipped { background: var(--ink); border-color: var(--ink); }
-.flashcard-flipped .flashcard-label, .flashcard-flipped .flashcard-text, .flashcard-flipped .flashcard-hint { color: #fff; }
+.stack-ghost-1 { transform: translateY(8px) scale(0.97); opacity: 0.7; }
+.stack-ghost-2 { transform: translateY(16px) scale(0.94); opacity: 0.4; }
+.stack-card {
+  position: relative; z-index: 2; width: 100%; min-height: 180px;
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 10px;
+  padding: 24px; text-align: left; cursor: pointer;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(20, 24, 50, 0.08);
+}
+.stack-card:hover { border-color: var(--ink); }
+.stack-card:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--mark); }
+.stack-card-flipped { background: var(--ink); border-color: var(--ink); }
+.stack-card-flipped .flashcard-label, .stack-card-flipped .flashcard-text, .stack-card-flipped .flashcard-hint { color: #fff; }
 .flashcard-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
-.flashcard-text { font-weight: 700; line-height: 1.4; }
-.flashcard-hint { margin-top: auto; font-size: 0.78rem; color: var(--muted); }
+.flashcard-text { font-weight: 700; font-size: 1.1rem; line-height: 1.4; }
+.flashcard-hint { font-size: 0.78rem; color: var(--muted); }
+.stack-nav { display: flex; align-items: center; gap: 16px; }
+.stack-count { color: var(--muted); font-weight: 700; font-size: 0.9rem; }
 
 @media (max-width: 800px) {
   .doc-row { grid-template-columns: 1fr; }
