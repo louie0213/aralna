@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
-const flashcardSchema = new mongoose.Schema(
+const topicSchema = new mongoose.Schema(
   {
-    question: { type: String, required: true, trim: true, maxlength: 300 },
-    answer: { type: String, required: true, trim: true, maxlength: 500 },
+    name: { type: String, required: true, trim: true, maxlength: 100 },
+    bulletPoints: [{ type: String, trim: true, maxlength: 280 }],
   },
   { _id: false }
 );
@@ -22,6 +22,7 @@ const reviewerSchema = new mongoose.Schema(
     document: { type: mongoose.Schema.Types.ObjectId, ref: 'Document', required: true, index: true },
     documentName: { type: String, required: true, trim: true },
     status: { type: String, enum: ['ready', 'failed'], default: 'ready' },
+    topics: { type: [topicSchema], default: [] },
     overview: { type: String, default: '' },
     learningObjectives: { type: [String], default: [] },
     keyTakeaways: { type: [String], default: [] },
@@ -32,7 +33,6 @@ const reviewerSchema = new mongoose.Schema(
     examples: { type: [String], default: [] },
     commonMisconceptions: { type: [String], default: [] },
     funFacts: { type: [String], default: [] },
-    flashcards: { type: [flashcardSchema], default: [] },
     error: { type: String },
   },
   { timestamps: true }

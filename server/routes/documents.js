@@ -11,7 +11,7 @@ import { extractText, isSupportedExtension } from '../services/extractText.js';
 
 const router = Router();
 const UPLOAD_ROOT = path.resolve('uploads');
-const MAX_SIZE = 20 * 1024 * 1024; // 20MB, generous enough for a slide deck or a phone photo
+const MAX_SIZE = 100 * 1024 * 1024; // 100MB
 
 // Files land here only long enough to be read for text, then get deleted (see the upload route).
 const storage = multer.diskStorage({
@@ -45,7 +45,7 @@ router.post('/upload', (req, res, next) => {
         err.message === 'UNSUPPORTED_TYPE'
           ? 'That file type is not supported. Use PDF, DOCX, PPTX, TXT, PNG, JPG or WEBP.'
           : err.code === 'LIMIT_FILE_SIZE'
-          ? 'That file is larger than the 20MB limit.'
+          ? 'That file is larger than the 100MB limit.'
           : 'Upload failed. Try again.';
       return res.status(400).json({ message });
     }

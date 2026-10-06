@@ -1,27 +1,23 @@
 import Groq from 'groq-sdk';
 
 const MAX_INPUT_CHARS = 12000;
-const MAX_OVERVIEW_CHARS = 1200;
-const MAX_LIST = 8;
-const MAX_MINOR_TOPICS = 12;
-const MAX_KEY_TERMS = 15;
-const MAX_FLASHCARDS = 15;
+const MAX_TOPICS = 12;
+const MAX_TOPIC_BULLETS = 5;
+const MAX_TOPIC_NAME_CHARS = 100;
+const MAX_BULLET_CHARS = 280;
 
 const SYSTEM_PROMPT = `You are an assistant that turns study material into a study guide for a student.
 Base everything only on the text the student gives you. Do not invent facts that are not in the text.
+Organize the material by topic. For each topic, include 2 to 5 concise bullet points, with exactly one sentence per bullet.
+Do not make flashcards, questions, an overview, or separate lists outside the topics.
 Reply with JSON only, no extra words, in exactly this shape:
 {
-  "overview": "a short overview of what the whole document covers",
-  "learningObjectives": ["what the student should be able to do or know after studying this"],
-  "keyTakeaways": ["the most important point to remember"],
-  "importantTopics": ["a major topic covered in depth"],
-  "minorTopics": ["a smaller supporting topic"],
-  "keyTerms": [{"term": "a word or phrase from the text", "definition": "a short, clear definition"}],
-  "conceptRelationships": ["how two ideas in the text connect or affect each other"],
-  "examples": ["a concrete example or case drawn from the text"],
-  "commonMisconceptions": ["something students often get wrong about this material, and the correct idea"],
-  "funFacts": ["a short interesting fact drawn from the text"],
-  "flashcards": [{"question": "a study question", "answer": "a short direct answer"}]
+  "topics": [
+    {
+      "name": "Topic name",
+      "bulletPoints": ["One clear sentence about the topic.", "Another concise sentence about the topic."]
+    }
+  ]
 }`;
 
 const clip = (str, max) => {
@@ -29,36 +25,22 @@ const clip = (str, max) => {
   return s.length > max ? s.slice(0, max) : s;
 };
 
-const cleanArray = (v, max) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string' && x.trim()).slice(0, max) : []);
-
-function sanitize(raw, documentName) {
-  const flashcards = Array.isArray(raw.flashcards)
-    ? raw.flashcards
-        .filter((f) => f && typeof f.question === 'string' && typeof f.answer === 'string')
-        .slice(0, MAX_FLASHCARDS)
-        .map((f) => ({ question: clip(f.question, 300), answer: clip(f.answer, 500) }))
+function sanitize(raw) {
+  const topics = Array.isArray(raw.topics)
+    ? raw.topics
+        .filter((topic) => topic && typeof topic.name === 'string' && Array.isArray(topic.bulletPoints))
+        .slice(0, MAX_TOPICS)
+        .map((topic) => ({
+          name: clip(topic.name, MAX_TOPIC_NAME_CHARS),
+          bulletPoints: topic.bulletPoints
+            .filter((point) => typeof point === 'string' && point.trim())
+            .slice(0, MAX_TOPIC_BULLETS)
+            .map((point) => clip(point, MAX_BULLET_CHARS)),
+        }))
+        .filter((topic) => topic.name && topic.bulletPoints.length)
     : [];
 
-  const keyTerms = Array.isArray(raw.keyTerms)
-    ? raw.keyTerms
-        .filter((t) => t && typeof t.term === 'string' && typeof t.definition === 'string')
-        .slice(0, MAX_KEY_TERMS)
-        .map((t) => ({ term: clip(t.term, 100), definition: clip(t.definition, 400) }))
-    : [];
-
-  return {
-    overview: clip(raw.overview, MAX_OVERVIEW_CHARS) || `No overview could be generated for ${documentName}.`,
-    learningObjectives: cleanArray(raw.learningObjectives, MAX_LIST),
-    keyTakeaways: cleanArray(raw.keyTakeaways, MAX_LIST),
-    importantTopics: cleanArray(raw.importantTopics, MAX_LIST),
-    minorTopics: cleanArray(raw.minorTopics, MAX_MINOR_TOPICS),
-    keyTerms,
-    conceptRelationships: cleanArray(raw.conceptRelationships, MAX_LIST),
-    examples: cleanArray(raw.examples, MAX_LIST),
-    commonMisconceptions: cleanArray(raw.commonMisconceptions, MAX_LIST),
-    funFacts: cleanArray(raw.funFacts, MAX_LIST),
-    flashcards,
-  };
+  return { topics };
 }
 
 export async function generateReviewer(text, documentName) {
@@ -89,5 +71,5 @@ export async function generateReviewer(text, documentName) {
   } catch {
     throw new Error('The AI did not return a usable result. Try again.');
   }
-  return sanitize(parsed, documentName);
+  return sanitize(parsed);
 }

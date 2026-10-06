@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.set('toJSON', {
+  virtuals: true,
   transform: (doc, ret) => {
     delete ret.passwordHash;
     delete ret.__v;

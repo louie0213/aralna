@@ -32,11 +32,8 @@ router.post('/generate', async (req, res, next) => {
     await reviewer.save();
 
     if (reviewer.status === 'ready') {
-      const topic = reviewer.importantTopics[0] || reviewer.minorTopics[0] || document.originalName;
+      const topic = reviewer.topics[0]?.name || document.originalName;
       await recordGeneration({ userId: req.user.id, type: 'summary', topic }).catch(() => {});
-      if (reviewer.flashcards.length) {
-        await recordGeneration({ userId: req.user.id, type: 'flashcards', topic }).catch(() => {});
-      }
     }
 
     res.status(201).json({ reviewer });

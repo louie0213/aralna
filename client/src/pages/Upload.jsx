@@ -65,8 +65,24 @@ export default function Upload() {
     }
   }
 
+  const generatingDocument = documents.find((document) => document.id === generatingId);
+
   return (
-    <>
+    <div className="upload-page" aria-busy={Boolean(generatingId)}>
+      {generatingId && (
+        <div className="generation-screen" role="status" aria-live="polite" aria-label="Generating study reviewer">
+          <section className="generation-window">
+            <span className="generation-spinner" aria-hidden="true" />
+            <p className="page-eyebrow">BUILDING YOUR REVIEWER</p>
+            <h2>Turning your notes into a study guide</h2>
+            <p className="generation-filename" title={generatingDocument?.originalName}>
+              {generatingDocument?.originalName || 'Your document'}
+            </p>
+            <div className="generation-progress" aria-hidden="true"><span /></div>
+            <p className="generation-note">Analyzing your material. This can take a little while.</p>
+          </section>
+        </div>
+      )}
       <h1>Upload documents</h1>
       {error && <div className="alert" role="alert">{error}</div>}
       <Dropzone onFiles={onFiles} />
@@ -106,7 +122,7 @@ export default function Upload() {
                 <div className="doc-actions">
                   <button
                     className="btn btn-primary btn-small"
-                    disabled={d.status !== 'ready' || generatingId === d.id}
+                    disabled={d.status !== 'ready' || generatingId !== null}
                     onClick={() => generateReviewer(d.id)}
                   >
                     {generatingId === d.id ? 'Generating...' : 'Generate reviewer'}
@@ -123,6 +139,6 @@ export default function Upload() {
           </ul>
         )}
       </section>
-    </>
+    </div>
   );
 }

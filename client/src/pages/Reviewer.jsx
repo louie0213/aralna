@@ -1,7 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
-import FlashcardStack from '../components/FlashcardStack.jsx';
+
+function getTopics(reviewer) {
+  if (Array.isArray(reviewer.topics) && reviewer.topics.length) return reviewer.topics;
+
+  const bulletPoints = [
+    reviewer.overview,
+    ...(reviewer.keyTakeaways || []),
+    ...(reviewer.learningObjectives || []),
+    ...(reviewer.conceptRelationships || []),
+    ...(reviewer.examples || []),
+    ...(reviewer.commonMisconceptions || []),
+    ...(reviewer.funFacts || []),
+    ...(reviewer.keyTerms || []).map(({ term, definition }) => `${term}: ${definition}`),
+  ].filter((point) => typeof point === 'string' && point.trim());
+
+  return bulletPoints.length ? [{ name: 'Study notes', bulletPoints }] : [];
+}
 
 export default function Reviewer() {
   const { id } = useParams();
@@ -36,69 +52,22 @@ export default function Reviewer() {
     );
   }
 
-  const list = (title, emoji, items) => {
-    if (!items || items.length === 0) return null;
-    return (
-      <section className="panel">
-        <h2>{emoji} {title}</h2>
-        <ul className="guide-list">
-          {items.map((item, i) => <li key={i}>{item}</li>)}
-        </ul>
-      </section>
-    );
-  };
+  const topics = getTopics(reviewer);
 
   return (
     <>
       <h1>{reviewer.documentName}</h1>
-
-      <section className="panel">
-        <h2>📌 Overview</h2>
-        <p className="reviewer-summary">{reviewer.overview}</p>
-      </section>
-
-      {list('Learning Objectives', '🎯', reviewer.learningObjectives)}
-      {list('Key Takeaways', '⭐', reviewer.keyTakeaways)}
-
-      {reviewer.importantTopics.length > 0 && (
-        <section className="panel">
-          <h2>🔥 Important Topics</h2>
-          <ul className="chips">{reviewer.importantTopics.map((t) => <li key={t} className="chip chip-primary">{t}</li>)}</ul>
-        </section>
-      )}
-
-      {reviewer.minorTopics.length > 0 && (
-        <section className="panel">
-          <h2>📚 Minor Topics</h2>
-          <ul className="chips">{reviewer.minorTopics.map((t) => <li key={t} className="chip">{t}</li>)}</ul>
-        </section>
-      )}
-
-      {reviewer.keyTerms.length > 0 && (
-        <section className="panel">
-          <h2>📖 Key Terms</h2>
-          <dl className="term-list">
-            {reviewer.keyTerms.map((t, i) => (
-              <div key={i} className="term-row">
-                <dt>{t.term}</dt>
-                <dd>{t.definition}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-      )}
-
-      {list('Concept Relationships', '🔗', reviewer.conceptRelationships)}
-      {list('Examples', '📝', reviewer.examples)}
-      {list('Common Misconceptions', '⚠️', reviewer.commonMisconceptions)}
-      {list('Fun Facts', '💡', reviewer.funFacts)}
-
-      {reviewer.flashcards.length > 0 && (
-        <section className="panel">
-          <h2>🗂️ Flashcards</h2>
-          <FlashcardStack cards={reviewer.flashcards} />
-        </section>
-      )}
+      <div className="reviewer-topics">
+        {topics.map((topic, index) => (
+          <section className="reviewer-topic" key={`${topic.name}-${index}`}>
+            <h2>{topic.name}</h2>
+            <ul>
+              {topic.bulletPoints.map((point, pointIndex) => <li key={pointIndex}>{point}</li>)}
+            </ul>
+          </section>
+        ))}
+        {topics.length === 0 && <p className="muted">No topic notes were generated for this document.</p>}
+      </div>
 
       <button className="btn btn-ghost" onClick={remove}>Delete reviewer</button>
     </>

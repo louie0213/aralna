@@ -11,6 +11,7 @@ import AdminLayout from './components/AdminLayout.jsx';
 import Overview from './pages/admin/Overview.jsx';
 import Users from './pages/admin/Users.jsx';
 import AddAdmin from './pages/admin/AddAdmin.jsx';
+import Landing from './pages/Landing.jsx';
 
 const homeFor = (user) => (user.role === 'admin' ? '/admin' : '/app');
 
@@ -32,6 +33,7 @@ function GuestOnly({ children }) {
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
       <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
       <Route path="/app" element={<Guarded role="student"><StudentLayout /></Guarded>}>
@@ -45,7 +47,7 @@ export default function App() {
         <Route path="users" element={<Users />} />
         <Route path="admins/new" element={<AddAdmin />} />
       </Route>
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
