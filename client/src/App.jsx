@@ -10,6 +10,7 @@ import Reviewer from './pages/Reviewer.jsx';
 import AdminLayout from './components/AdminLayout.jsx';
 import Overview from './pages/admin/Overview.jsx';
 import Users from './pages/admin/Users.jsx';
+import Files from './pages/admin/Files.jsx';
 import AddAdmin from './pages/admin/AddAdmin.jsx';
 import Landing from './pages/Landing.jsx';
 
@@ -19,7 +20,8 @@ function Guarded({ role, children }) {
   const { user, loading } = useAuth();
   if (loading) return <p className="page-status">Loading...</p>;
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role !== role) return <Navigate to={homeFor(user)} replace />;
+  const allowedRoles = Array.isArray(role) ? role : [role];
+  if (!allowedRoles.includes(user.role)) return <Navigate to={homeFor(user)} replace />;
   return children;
 }
 
@@ -30,13 +32,19 @@ function GuestOnly({ children }) {
   return children;
 }
 
+function SuperAdminOnly({ children }) {
+  const { user } = useAuth();
+  if (!user?.isSuperAdmin) return <Navigate to="/admin/users" replace />;
+  return children;
+}
+
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
       <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
-      <Route path="/app" element={<Guarded role="student"><StudentLayout /></Guarded>}>
+      <Route path="/app" element={<Guarded role={['student', 'admin']}><StudentLayout /></Guarded>}>
         <Route index element={<StudentHome />} />
         <Route path="upload" element={<Upload />} />
         <Route path="reviewers" element={<Reviewers />} />
@@ -45,7 +53,8 @@ export default function App() {
       <Route path="/admin" element={<Guarded role="admin"><AdminLayout /></Guarded>}>
         <Route index element={<Overview />} />
         <Route path="users" element={<Users />} />
-        <Route path="admins/new" element={<AddAdmin />} />
+        <Route path="files" element={<Files />} />
+        <Route path="admins/new" element={<SuperAdminOnly><AddAdmin /></SuperAdminOnly>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -47,3 +47,8 @@ export const requireRole = (...roles) => (req, res, next) =>
   roles.includes(req.user.role)
     ? next()
     : res.status(403).json({ message: 'You do not have access to this page.' });
+
+export const requireSuperAdmin = (req, res, next) =>
+  req.user.role === 'admin' && req.user.isSuperAdmin
+    ? next()
+    : res.status(403).json({ message: 'Only the super admin can perform this action.' });

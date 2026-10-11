@@ -4,6 +4,7 @@ import { useAuth } from '../AuthContext.jsx';
 export default function StudentHome() {
   const { user } = useAuth();
   const firstName = user.fullName.trim().split(/\s+/)[0];
+  const accountLabel = user.isSuperAdmin ? 'Super admin account' : user.role === 'admin' ? 'Admin account' : 'Student account';
 
   return (
     <div className="student-dashboard">
@@ -13,7 +14,7 @@ export default function StudentHome() {
           <h1>Welcome back, {firstName}</h1>
           <p className="page-description">Your notes are the starting point. Pick up where your next study session begins.</p>
         </div>
-        <span className="account-chip"><span aria-hidden="true" /> Student account</span>
+        <span className="account-chip"><span aria-hidden="true" /> {accountLabel}</span>
       </header>
 
       <section className="student-start">

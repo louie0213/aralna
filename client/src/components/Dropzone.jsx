@@ -31,7 +31,7 @@ export default function Dropzone({ onFiles }) {
         onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }}
       />
       <p className="dropzone-title">Drag files here, or click to browse</p>
-      <p className="dropzone-sub">PDF, DOCX, PPTX, TXT, PNG, JPG or WEBP. Photos are read with OCR. Up to 100MB each.</p>
+      <p className="dropzone-sub">PDF, DOCX, PPTX, TXT, PNG, JPG or WEBP. Scanned PDFs and photos are read with OCR. Up to 100MB each.</p>
     </div>
   );
 }

@@ -17,6 +17,31 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (!user) return undefined;
+
+    let active = true;
+    const sendPresence = () => {
+      if (document.visibilityState !== 'visible') return;
+      api.post('/auth/presence').catch((err) => {
+        if (active) console.error('Could not update online presence:', err.message);
+      });
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') sendPresence();
+    };
+
+    sendPresence();
+    const interval = window.setInterval(sendPresence, 20 * 1000);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [user]);
+
   async function login(email, password) {
     const data = await api.post('/auth/login', { email, password });
     setUser(data.user);

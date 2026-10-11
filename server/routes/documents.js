@@ -69,7 +69,7 @@ router.post('/upload', (req, res, next) => {
       }
     } catch {
       doc.status = 'failed';
-      doc.error = 'Could not read this file. It may be corrupted, password protected, or a scanned PDF with no text layer.';
+      doc.error = 'Could not read this file. It may be corrupted, password protected, or contain text the extractor could not recognize.';
     } finally {
       await fsp.unlink(req.file.path).catch(() => {});
     }

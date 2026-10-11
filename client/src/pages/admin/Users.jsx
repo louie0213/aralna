@@ -7,6 +7,7 @@ const fmt = (d) => (d ? new Date(d).toLocaleString([], { dateStyle: 'medium', ti
 
 export default function Users() {
   const { user: me } = useAuth();
+  const isSuperAdmin = Boolean(me?.isSuperAdmin);
   const [users, setUsers] = useState([]);
   const [q, setQ] = useState('');
   const [search, setSearch] = useState('');
@@ -50,9 +51,13 @@ export default function Users() {
         <div>
           <p className="page-eyebrow">ADMIN WORKSPACE / DIRECTORY</p>
           <h1>Users</h1>
-          <p className="page-description">Manage access and review account activity.</p>
+          <p className="page-description">
+            {isSuperAdmin ? 'Manage access and review account activity.' : 'Monitor account status and activity.'}
+          </p>
         </div>
-        <Link className="btn btn-primary page-heading-action" to="/admin/admins/new">Add admin <span aria-hidden="true">↗</span></Link>
+        {isSuperAdmin && (
+          <Link className="btn btn-primary page-heading-action" to="/admin/admins/new">Add admin <span aria-hidden="true">↗</span></Link>
+        )}
       </header>
       {error && <div className="alert" role="alert">{error}</div>}
       <div className="users-toolbar">
@@ -75,23 +80,28 @@ export default function Users() {
       <div className="table-wrap users-table-wrap">
         <table className="users-table">
           <thead>
-            <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last active</th><th></th></tr>
+            <tr>
+              <th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last active</th>
+              {isSuperAdmin && <th>Account access</th>}
+            </tr>
           </thead>
           <tbody>
-            {loading && <tr><td className="table-message" colSpan="6">Loading accounts...</td></tr>}
-            {!loading && users.length === 0 && <tr><td className="table-message" colSpan="6">No accounts match these filters.</td></tr>}
+            {loading && <tr><td className="table-message" colSpan={isSuperAdmin ? 6 : 5}>Loading accounts...</td></tr>}
+            {!loading && users.length === 0 && <tr><td className="table-message" colSpan={isSuperAdmin ? 6 : 5}>No accounts match these filters.</td></tr>}
             {users.map((u) => (
               <tr key={u.id}>
                 <td data-label="Name"><span className="user-name">{u.fullName}</span></td>
                 <td data-label="Email" className="user-email">{u.email}</td>
-                <td data-label="Role"><span className="role-label">{u.role}</span></td>
+                <td data-label="Role"><span className="role-label">{u.isSuperAdmin ? 'Super admin' : u.role}</span></td>
                 <td data-label="Status"><span className={u.isActive ? 'badge badge-on' : 'badge badge-off'}>{u.isActive ? 'Enabled' : 'Disabled'}</span></td>
                 <td data-label="Last active" className="last-active">{fmt(u.lastActiveAt)}</td>
-                <td data-label="Account access" className="user-action-cell">
-                  <button className="btn btn-ghost user-action" disabled={u.id === me.id} onClick={() => toggle(u)} aria-label={`${u.isActive ? 'Disable' : 'Enable'} ${u.fullName}`}>
-                    {u.id === me.id ? 'You' : u.isActive ? 'Disable' : 'Enable'}
-                  </button>
-                </td>
+                {isSuperAdmin && (
+                  <td data-label="Account access" className="user-action-cell">
+                    <button className="btn btn-ghost user-action" disabled={u.id === me.id || u.isSuperAdmin} onClick={() => toggle(u)} aria-label={`${u.isActive ? 'Disable' : 'Enable'} ${u.fullName}`}>
+                      {u.isSuperAdmin ? 'Protected' : u.id === me.id ? 'You' : u.isActive ? 'Disable' : 'Enable'}
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../api.js';
 
@@ -15,12 +15,34 @@ function Stat({ label, value, note }) {
 export default function Overview() {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState('');
+  const hasLoadedStats = useRef(false);
 
   useEffect(() => {
-    api.get('/admin/stats').then(setStats).catch((err) => setError(err.message));
+    let active = true;
+    const loadStats = () => {
+      api.get('/admin/stats')
+        .then((data) => {
+          if (!active) return;
+          hasLoadedStats.current = true;
+          setStats(data);
+          setError('');
+        })
+        .catch((err) => {
+          if (!active) return;
+          if (hasLoadedStats.current) console.error('Could not refresh admin dashboard:', err.message);
+          else setError(err.message);
+        });
+    };
+
+    loadStats();
+    const interval = window.setInterval(loadStats, 30 * 1000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
   }, []);
 
-  if (error) return <div className="alert" role="alert">{error}</div>;
+  if (error && !stats) return <div className="alert" role="alert">{error}</div>;
   if (!stats) return <p className="page-status">Loading...</p>;
 
   const { users, generations, topTopics } = stats;
@@ -37,8 +59,11 @@ export default function Overview() {
         <Link className="btn btn-ghost page-heading-action" to="/admin/users">Manage users <span aria-hidden="true">↗</span></Link>
       </header>
 
+      {error && <div className="alert" role="alert">{error}</div>}
+
       <div className="metrics-grid">
         <Stat label="Quizzes generated" value={generations.quizzes} note={`${generations.quizzesLast7Days} in the last 7 days`} />
+        <Stat label="Online users" value={users.onlineUsers} note="Live presence · refreshes every 30 seconds" />
         <Stat label="Active students" value={users.activeStudents} note="Used the app in the last 7 days" />
         <Stat label="Registered students" value={users.students} note={`${users.admins} admin${users.admins === 1 ? '' : 's'}`} />
         <Stat label="Disabled accounts" value={users.disabled} />

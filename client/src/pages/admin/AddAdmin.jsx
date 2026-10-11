@@ -50,7 +50,7 @@ export default function AddAdmin() {
     <>
       <h1>Add admin</h1>
       <section className="panel form-panel">
-        <p className="muted">The new admin can log in right away with this email and password.</p>
+        <p className="muted">The new admin can monitor the dashboard and user directory, but cannot change account access or create admins.</p>
         {error && <div className="alert" role="alert">{error}</div>}
         {done && <div className="notice" role="status">{done}</div>}
         <form onSubmit={onSubmit} noValidate>

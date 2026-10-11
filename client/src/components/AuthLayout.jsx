@@ -5,7 +5,10 @@ export default function AuthLayout({ children, wide = false }) {
   return (
     <div className="auth">
       <aside className="auth-side">
-        <Link className="auth-brand" to="/">AralNa</Link>
+        <Link className="auth-brand" to="/" aria-label="AralNa home">
+          <span className="brand-mark" aria-hidden="true">a.</span>
+          <span>AralNa</span>
+        </Link>
         <p className="auth-pitch">Upload your notes. Get summaries, flashcards and quizzes you can review anywhere.</p>
       </aside>
       <div className="auth-theme"><ThemeToggle /></div>

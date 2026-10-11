@@ -7,11 +7,15 @@ const userSchema = new mongoose.Schema(
     program: { type: String, trim: true, maxlength: 100 },
     passwordHash: { type: String, required: true, select: false },
     role: { type: String, enum: ['student', 'admin'], default: 'student' },
+    isSuperAdmin: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
     lastActiveAt: { type: Date },
+    lastSeenAt: { type: Date },
   },
   { timestamps: true }
 );
+
+userSchema.index({ isActive: 1, lastSeenAt: 1 });
 
 userSchema.set('toJSON', {
   virtuals: true,

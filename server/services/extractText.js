@@ -1,16 +1,63 @@
 import fs from 'fs/promises';
-import PDFParse from 'pdf-parse';
+import { createCanvas } from '@napi-rs/canvas';
+import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import mammoth from 'mammoth';
 import AdmZip from 'adm-zip';
 import { createWorker } from 'tesseract.js';
+
+const MAX_PDF_PAGE_PIXELS = 16_000_000;
 
 const decodeXmlEntities = (s) =>
   s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
 
 async function extractPdf(filePath) {
   const buffer = await fs.readFile(filePath);
-  const { text } = await PDFParse(buffer);
-  return text.trim();
+  const loadingTask = getDocument({ data: new Uint8Array(buffer) });
+  let pdf;
+  let worker;
+
+  try {
+    pdf = await loadingTask.promise;
+    const pages = [];
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+      const page = await pdf.getPage(pageNumber);
+      let canvas;
+
+      try {
+        const content = await page.getTextContent();
+        let text = content.items.map((item) => item.str || '').join(' ').trim();
+
+        if (!text) {
+          worker ||= await createWorker('eng');
+          const baseViewport = page.getViewport({ scale: 1 });
+          const scale = Math.min(2, Math.sqrt(MAX_PDF_PAGE_PIXELS / (baseViewport.width * baseViewport.height)));
+          const viewport = page.getViewport({ scale });
+          canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
+          await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+          const result = await worker.recognize(canvas.toBuffer('image/png'));
+          text = (result.data.text || '').trim();
+        }
+
+        pages.push(text);
+      } finally {
+        if (canvas) {
+          canvas.width = 0;
+          canvas.height = 0;
+        }
+        page.cleanup();
+      }
+    }
+
+    return pages.filter(Boolean).join('\n\n').trim();
+  } finally {
+    try {
+      if (worker) await worker.terminate();
+    } finally {
+      if (pdf) await pdf.destroy();
+      else await loadingTask.destroy();
+    }
+  }
 }
 
 async function extractDocx(filePath) {

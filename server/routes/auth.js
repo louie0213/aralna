@@ -83,6 +83,19 @@ router.post('/logout', (req, res) => {
   res.json({ message: 'Logged out.' });
 });
 
+router.post('/presence', requireAuth, async (req, res, next) => {
+  try {
+    await User.updateOne(
+      { _id: req.user.id, isActive: true },
+      { $set: { lastSeenAt: new Date() } },
+      { timestamps: false }
+    );
+    res.json({ message: 'Presence updated.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.get('/me', requireAuth, (req, res) => res.json({ user: req.user }));
 
 export default router;

@@ -41,18 +41,25 @@ so one run can't balloon the database or the response.
 ## Upload module (/app/upload)
 
 Students can drag and drop, or click to browse for:
-- PDF, DOCX, PPTX, TXT — text is extracted directly
+- PDF, DOCX, PPTX, TXT — text is extracted directly; scanned PDFs are rendered page by page and read with OCR
 - PNG, JPG, JPEG, WEBP — read with OCR (Tesseract), for photos of notes or whiteboards
 
-Only the extracted text and file metadata are kept in MongoDB; the uploaded file itself is
-deleted from disk right after its text is extracted.
+OCR uses English recognition. Only the extracted text and file metadata are kept in MongoDB;
+the uploaded file itself is deleted from disk right after its text is extracted.
 
 ## Admin dashboard (/admin)
 
 - Overview: quizzes generated, active students (used the app in the last 7 days), registered
-  students, disabled accounts, and the most generated topics.
-- Users: search, filter by role or status, disable or enable accounts.
-- Add admin: an admin creates another admin account.
+  students, online users, disabled accounts, and the most generated topics. Online presence is
+  refreshed while a signed-in app tab is visible and expires after 60 seconds without a heartbeat.
+- The account created by `npm run seed:admin` is the super admin. Running the seed script
+  again promotes/updates that configured account as the super admin.
+- Regular admins can monitor the overview and search/filter the user directory, but cannot
+  change account access or create admins.
+- Only the super admin can disable or enable accounts and create regular admin accounts.
+- Files: admins can view uploaded document names, uploader, upload time, size, and processing
+  status. The uploaded binary is deleted after text extraction, and extracted document contents
+  are not exposed through the admin files view.
 
 To see sample numbers, run npm run seed:demo in the server folder. Remove them with npm run clear:demo.
 
@@ -62,6 +69,7 @@ POST   /api/auth/register            student sign-up
 POST   /api/auth/login
 POST   /api/auth/logout
 GET    /api/auth/me
+POST   /api/auth/presence
 POST   /api/documents/upload         multipart/form-data, field name "file"
 GET    /api/documents
 GET    /api/documents/:id
@@ -72,6 +80,7 @@ GET    /api/reviewers/:id
 DELETE /api/reviewers/:id
 GET    /api/admin/stats              admin only
 GET    /api/admin/users?role=&status=&q=
+GET    /api/admin/files?page=         admin only; paginated upload metadata and uploader
 PATCH  /api/admin/users/:id/active   disable or enable
 POST   /api/admin/admins             create another admin
 
