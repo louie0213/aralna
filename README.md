@@ -8,8 +8,8 @@ fun facts, flashcards) from any uploaded document using Groq.
 ## Run it
 
 1. Backend (folder server): copy .env.example to .env, set MONGO_URI, JWT_SECRET,
-   GROQ_API_KEY, GMAIL_USER and GMAIL_APP_PASSWORD, then npm install, npm run seed:admin,
-   npm run dev
+   GROQ_API_KEY, set EMAIL_PROVIDER=gmail and configure GMAIL_USER and GMAIL_APP_PASSWORD,
+   then npm install, npm run seed:admin, npm run dev
 2. Frontend (folder client): npm install, npm run dev, open http://localhost:5173
 
 ## Reviewer generation module (/app/reviewers)
@@ -94,15 +94,24 @@ POST   /api/admin/admins             create another admin
 - A disabled account is rejected on its next request, so it is logged out immediately.
 - Inputs must be strings, which blocks NoSQL operator injection.
 - Login and register are rate limited, and login errors do not reveal which emails exist.
-- Password reset codes are emailed through Gmail SMTP, expire after 10 minutes, and are
-  single-use. Reset requests and attempts are rate limited, and reset requests do not reveal
-  whether an email is registered.
+- Password reset codes are emailed through the configured provider, expire after 10 minutes,
+  and are single-use. Reset requests and attempts are rate limited, and reset requests do not
+  reveal whether an email is registered.
 - Uploads are capped at 20MB and restricted to a fixed list of extensions; a student can only
   read, list or delete their own documents and reviewers.
 
 ## Password reset email
 
-Set `GMAIL_USER` to the Gmail address used to send messages and `GMAIL_APP_PASSWORD` to an
-App Password generated for that Google account (not its regular sign-in password). Gmail SMTP
-uses `smtp.gmail.com` on port 587 with required STARTTLS. If email configuration is missing or unavailable, password
-reset requests return an error without disclosing whether the email belongs to an account.
+For local development, set `EMAIL_PROVIDER=gmail`, `GMAIL_USER` to the full Gmail sender
+address, and `GMAIL_APP_PASSWORD` to an App Password for that account (not its regular
+sign-in password). Gmail SMTP uses `smtp.gmail.com` on port 587 with required STARTTLS.
+
+For Render, set `EMAIL_PROVIDER=resend`, `RESEND_API_KEY` to an API key from
+https://resend.com/api-keys, and `RESEND_FROM` to a sender address on a domain verified with
+Resend (for example, `AralNa <no-reply@your-verified-domain.com>`). Add these in the Render
+backend service's Environment settings. Resend sends over HTTPS, avoiding Render's outbound
+SMTP connection timeout. Do not use Gmail credentials for the Render Resend configuration.
+
+If `EMAIL_PROVIDER` is omitted, local development defaults to Gmail and production defaults
+to Resend. If email configuration is missing or unavailable, password reset requests return
+an error without disclosing whether the email belongs to an account.

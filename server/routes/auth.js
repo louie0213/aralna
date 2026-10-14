@@ -152,8 +152,8 @@ router.post('/forgot-password', forgotPasswordLimiter, async (req, res, next) =>
     }
 
     try {
-      await sendPasswordResetEmail(email, code);
-      logPasswordResetStatus('Gmail SMTP accepted the reset email');
+      const provider = await sendPasswordResetEmail(email, code);
+      logPasswordResetStatus(`${provider} accepted the reset email`);
     } catch (err) {
       console.error('Password reset email delivery failed:', err.message);
       try {
@@ -172,7 +172,7 @@ router.post('/forgot-password', forgotPasswordLimiter, async (req, res, next) =>
         console.error('Could not invalidate an undelivered password reset code:', cleanupError.message);
       }
       return res.status(503).json({
-        message: 'Could not send the reset email right now. Check Gmail SMTP settings and try again.',
+        message: 'Could not send the reset email right now. Check the email provider settings and try again.',
       });
     }
 
