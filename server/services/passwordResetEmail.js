@@ -14,15 +14,14 @@ function getTransporter() {
       host: 'smtp.gmail.com',
       port: 465,
       secure: true,
+      connectionTimeout: 6000,
+      greetingTimeout: 6000,
+      socketTimeout: 12000,
       auth: { user, pass: password },
     });
   }
 
   return transporter;
-}
-
-export async function verifyPasswordResetEmailConfig() {
-  await getTransporter().verify();
 }
 
 export async function sendPasswordResetEmail(email, code) {

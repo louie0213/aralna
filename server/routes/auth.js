@@ -5,7 +5,7 @@ import rateLimit from 'express-rate-limit';
 import User from '../models/User.js';
 import { COOKIE_NAME, signToken, setAuthCookie, requireAuth } from '../middleware/auth.js';
 import { EMAIL_RE, str, validateAccount } from '../utils/validate.js';
-import { sendPasswordResetEmail, verifyPasswordResetEmailConfig } from '../services/passwordResetEmail.js';
+import { sendPasswordResetEmail } from '../services/passwordResetEmail.js';
 
 const router = Router();
 // Compared against when the email is unknown, so response time does not reveal which emails exist.
@@ -114,13 +114,6 @@ router.post('/login', limiter, async (req, res, next) => {
 });
 
 router.post('/forgot-password', forgotPasswordLimiter, async (req, res, next) => {
-  try {
-    await verifyPasswordResetEmailConfig();
-  } catch (err) {
-    console.error('Password reset email service is unavailable:', err.message);
-    return res.status(503).json({ message: 'Password reset email is temporarily unavailable. Try again later.' });
-  }
-
   const email = str(req.body.email).toLowerCase();
   if (email.length > 254 || !EMAIL_RE.test(email)) return res.json({ message: RESET_NOTICE });
 
