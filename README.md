@@ -104,5 +104,5 @@ POST   /api/admin/admins             create another admin
 
 Set `GMAIL_USER` to the Gmail address used to send messages and `GMAIL_APP_PASSWORD` to an
 App Password generated for that Google account (not its regular sign-in password). Gmail SMTP
-uses `smtp.gmail.com` over TLS. If email configuration is missing or unavailable, password
+uses `smtp.gmail.com` on port 587 with required STARTTLS. If email configuration is missing or unavailable, password
 reset requests return an error without disclosing whether the email belongs to an account.
