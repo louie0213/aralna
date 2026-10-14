@@ -4,9 +4,9 @@ let transporter;
 
 function getProvider() {
   const provider = process.env.EMAIL_PROVIDER
-    || (process.env.NODE_ENV === 'production' ? 'resend' : 'gmail');
-  if (provider !== 'gmail' && provider !== 'resend') {
-    throw new Error('EMAIL_PROVIDER must be either "gmail" or "resend".');
+    || (process.env.NODE_ENV === 'production' ? 'brevo' : 'gmail');
+  if (provider !== 'gmail' && provider !== 'brevo') {
+    throw new Error('EMAIL_PROVIDER must be either "gmail" or "brevo".');
   }
   return provider;
 }
@@ -42,20 +42,28 @@ function getEmailContent(code) {
   };
 }
 
-async function sendWithResend(email, code) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM;
-  if (!apiKey || !from) {
-    throw new Error('Set RESEND_API_KEY and RESEND_FROM to send password reset email through Resend.');
+async function sendWithBrevo(email, code) {
+  const apiKey = process.env.BREVO_API_KEY;
+  const fromEmail = process.env.BREVO_FROM_EMAIL;
+  const fromName = process.env.BREVO_FROM_NAME || 'AralNa';
+  if (!apiKey || !fromEmail) {
+    throw new Error('Set BREVO_API_KEY and BREVO_FROM_EMAIL to send password reset email through Brevo.');
   }
 
-  const response = await fetch('https://api.resend.com/emails', {
+  const content = getEmailContent(code);
+  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      'api-key': apiKey,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ from, to: [email], ...getEmailContent(code) }),
+    body: JSON.stringify({
+      sender: { name: fromName, email: fromEmail },
+      to: [{ email }],
+      subject: content.subject,
+      textContent: content.text,
+      htmlContent: content.html,
+    }),
     signal: AbortSignal.timeout(10000),
   });
 
@@ -64,19 +72,19 @@ async function sendWithResend(email, code) {
     let detail = '';
     try {
       const result = JSON.parse(responseText);
-      detail = result.message || result.name || '';
+      detail = result.message || result.code || '';
     } catch {
       detail = '';
     }
-    throw new Error(`Resend API returned HTTP ${response.status}${detail ? `: ${detail}` : ''}.`);
+    throw new Error(`Brevo API returned HTTP ${response.status}${detail ? `: ${detail}` : ''}.`);
   }
 }
 
 export async function sendPasswordResetEmail(email, code) {
   const provider = getProvider();
-  if (provider === 'resend') {
-    await sendWithResend(email, code);
-    return 'Resend';
+  if (provider === 'brevo') {
+    await sendWithBrevo(email, code);
+    return 'Brevo';
   }
 
   const user = process.env.GMAIL_USER;

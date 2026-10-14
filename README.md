@@ -106,12 +106,12 @@ For local development, set `EMAIL_PROVIDER=gmail`, `GMAIL_USER` to the full Gmai
 address, and `GMAIL_APP_PASSWORD` to an App Password for that account (not its regular
 sign-in password). Gmail SMTP uses `smtp.gmail.com` on port 587 with required STARTTLS.
 
-For Render, set `EMAIL_PROVIDER=resend`, `RESEND_API_KEY` to an API key from
-https://resend.com/api-keys, and `RESEND_FROM` to a sender address on a domain verified with
-Resend (for example, `AralNa <no-reply@your-verified-domain.com>`). Add these in the Render
-backend service's Environment settings. Resend sends over HTTPS, avoiding Render's outbound
-SMTP connection timeout. Do not use Gmail credentials for the Render Resend configuration.
+For Render, set `EMAIL_PROVIDER=brevo`, `BREVO_API_KEY` to an API key from your Brevo
+account, and `BREVO_FROM_EMAIL` to a sender address verified in Brevo. Optionally set
+`BREVO_FROM_NAME` (defaults to `AralNa`). Add these in the Render backend service's
+Environment settings. Brevo sends over HTTPS, avoiding Render's outbound SMTP connection
+timeout. Do not use Gmail credentials for the Render Brevo configuration.
 
 If `EMAIL_PROVIDER` is omitted, local development defaults to Gmail and production defaults
-to Resend. If email configuration is missing or unavailable, password reset requests return
+to Brevo. If email configuration is missing or unavailable, password reset requests return
 an error without disclosing whether the email belongs to an account.
