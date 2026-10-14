@@ -288,6 +288,9 @@ tbody tr:last-child td { border-bottom: 0; }
 .term-row dd { margin: 0; color: var(--text); line-height: 1.5; }
 
 .reviewer-topics { display: grid; gap: 12px; margin-bottom: 20px; }
+.reviewer-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.reviewer-header h1 { min-width: 0; margin: 0; overflow-wrap: anywhere; }
+.reviewer-download { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 8px; width: auto; margin: 0; padding: 9px 12px; border-radius: 6px; font-size: 0.84rem; }
 .reviewer-filter { gap: 8px; }
 .reviewer-filter label { color: var(--muted); }
 .reviewer-topic { padding: 14px 16px; background: var(--paper); border: 1px solid var(--line); border-left: 3px solid var(--ink); border-radius: 8px; }
@@ -300,6 +303,8 @@ tbody tr:last-child td { border-bottom: 0; }
 .reviewer-formula-label { margin: 0 0 6px; color: var(--muted); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
 .reviewer-formula code { display: block; overflow-wrap: anywhere; color: var(--text); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.96rem; font-weight: 700; }
 .reviewer-worked-example { margin: 10px 0 0; color: var(--text); font-size: 0.88rem; line-height: 1.55; }
+.reviewer-worked-steps { display: grid; gap: 6px; margin: 10px 0 0; padding-left: 22px; }
+.reviewer-worked-steps li { padding-left: 2px; color: var(--text); font-size: 0.88rem; line-height: 1.55; }
 
 /* Flashcard stack */
 .stack-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
@@ -329,6 +334,10 @@ tbody tr:last-child td { border-bottom: 0; }
 @media (max-width: 800px) {
   .doc-row { grid-template-columns: 1fr; }
   .doc-actions { justify-content: flex-start; }
+}
+
+@media (max-width: 520px) {
+  .reviewer-header { align-items: flex-start; flex-direction: column; }
 }
 
 /* Shared theme control */

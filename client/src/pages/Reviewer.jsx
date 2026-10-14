@@ -19,6 +19,13 @@ function getTopics(reviewer) {
   return bulletPoints.length ? [{ name: 'Study notes', bulletPoints }] : [];
 }
 
+function getWorkedExampleSteps(workedExample) {
+  const lines = String(workedExample || '').split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const stepPattern = /^Step\s+\d+[:.)-]\s*/i;
+  if (!lines.length || lines.some((line) => !stepPattern.test(line))) return [];
+  return lines.map((line) => line.replace(stepPattern, '').trim()).filter(Boolean);
+}
+
 export default function Reviewer() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -27,6 +34,8 @@ export default function Reviewer() {
   const [view, setView] = useState('topics');
   const [selectedYear, setSelectedYear] = useState('all');
   const [selectedTerm, setSelectedTerm] = useState('');
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState('');
 
   useEffect(() => {
     api.get(`/reviewers/${id}`).then((d) => setReviewer(d.reviewer)).catch((err) => setError(err.message));
@@ -75,9 +84,92 @@ export default function Reviewer() {
     : timeline.filter((entry) => entry.year === selectedYear);
   const selectedKeyTerm = keyTerms.find((entry) => entry.term === selectedTerm);
 
+  async function downloadReviewer() {
+    setDownloading(true);
+    setDownloadError('');
+    try {
+      const { Document: WordDocument, HeadingLevel, Packer, Paragraph, TextRun } = await import('docx');
+      const paragraphs = [new Paragraph({ text: reviewer.documentName, heading: HeadingLevel.TITLE })];
+
+      for (const topic of topics) {
+        paragraphs.push(new Paragraph({ text: topic.name, heading: HeadingLevel.HEADING_1 }));
+        for (const point of topic.bulletPoints) {
+          paragraphs.push(new Paragraph({ text: point, bullet: { level: 0 } }));
+        }
+        if (topic.formulaExamples?.length) {
+          paragraphs.push(new Paragraph({ text: 'Formula examples', heading: HeadingLevel.HEADING_2 }));
+          for (const entry of topic.formulaExamples) {
+            paragraphs.push(new Paragraph({
+              children: [new TextRun({ text: 'Formula: ', bold: true }), new TextRun({ text: entry.formula, font: 'Consolas' })],
+            }));
+            const steps = getWorkedExampleSteps(entry.workedExample);
+            if (steps.length) {
+              paragraphs.push(new Paragraph({
+                children: [new TextRun({ text: 'Worked example: ', bold: true })],
+              }));
+              steps.forEach((step, index) => {
+                paragraphs.push(new Paragraph({ text: `Step ${index + 1}: ${step}` }));
+              });
+            } else {
+              paragraphs.push(new Paragraph({
+                children: [
+                  new TextRun({ text: 'Worked example: ', bold: true }),
+                  new TextRun(entry.workedExample),
+                ],
+              }));
+            }
+          }
+        }
+      }
+
+      if (timeline.length) {
+        paragraphs.push(new Paragraph({ text: 'Timeline', heading: HeadingLevel.HEADING_1 }));
+        for (const entry of timeline) {
+          paragraphs.push(new Paragraph({ text: entry.year, heading: HeadingLevel.HEADING_2 }));
+          paragraphs.push(new Paragraph(entry.summary));
+        }
+      }
+
+      if (keyTerms.length) {
+        paragraphs.push(new Paragraph({ text: 'Key terms', heading: HeadingLevel.HEADING_1 }));
+        for (const entry of keyTerms) {
+          paragraphs.push(new Paragraph({
+            children: [new TextRun({ text: `${entry.term}: `, bold: true }), new TextRun(entry.definition)],
+            bullet: { level: 0 },
+          }));
+        }
+      }
+
+      const wordDocument = new WordDocument({ sections: [{ children: paragraphs }] });
+      const blob = await Packer.toBlob(wordDocument);
+      const filename = (reviewer.documentName || 'reviewer')
+        .replace(/\.[^.]+$/, '')
+        .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '-')
+        .trim() || 'reviewer';
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${filename}.docx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      setDownloadError(err.message || 'Could not create the DOCX download.');
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   return (
     <>
-      <h1>{reviewer.documentName}</h1>
+      <header className="reviewer-header">
+        <h1>{reviewer.documentName}</h1>
+        <button className="btn btn-ghost reviewer-download" type="button" onClick={downloadReviewer} disabled={downloading}>
+          <span aria-hidden="true">↓</span> {downloading ? 'Preparing DOCX...' : 'Download DOCX'}
+        </button>
+      </header>
+      {downloadError && <div className="alert" role="alert">{downloadError}</div>}
 
       {(topics.length > 0 || years.length > 0 || keyTerms.length > 0) && (
         <div className="toolbar reviewer-filter">
@@ -116,7 +208,15 @@ export default function Reviewer() {
                     <p className="reviewer-formula-label">Formula</p>
                     <code>{entry.formula}</code>
                     <p className="reviewer-formula-label">Worked example</p>
-                    <p className="reviewer-worked-example">{entry.workedExample}</p>
+                    {getWorkedExampleSteps(entry.workedExample).length ? (
+                      <ol className="reviewer-worked-steps">
+                        {getWorkedExampleSteps(entry.workedExample).map((step, stepIndex) => (
+                          <li key={stepIndex}>{step}</li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <p className="reviewer-worked-example">{entry.workedExample}</p>
+                    )}
                   </article>
                 ))}
               </div>

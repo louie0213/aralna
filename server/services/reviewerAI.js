@@ -21,7 +21,7 @@ Organize the material by topic. For each topic, include 2 to 5 concise bullet po
 Also collect up to 15 important terms from the text, each with a concise definition based only on the text.
 Do not make flashcards, questions, or an overview.
 
-For topics whose source material contains a mathematical formula or a problem that uses one, include a "formulaExamples" array on that topic. Each entry must contain the formula and a short worked example showing values substituted into it and the result. Use formulas supported by the source; if you choose simple illustrative values not present in the source, label them as an example. Keep formulas in readable plain-text notation. If a topic has no formula or math problem, use an empty array. Do not add formula sections for non-math material.
+For topics whose source material contains a mathematical formula or a problem that uses one, include a "formulaExamples" array on that topic. Each entry must contain the formula and a worked example written as 3 to 5 short, numbered steps, with each step on a new line in the workedExample string. Use simple values and explain the calculation in everyday language: state the given values, substitute them into the formula, calculate one operation at a time, then state the answer and its units when applicable. Use formulas supported by the source; if you choose simple illustrative values not present in the source, label them as an example. Write powers with superscript characters (for example, x² rather than x^2); when an example uses a squared value, show that squaring means multiplying the value by itself (for example, 3² = 3 x 3 = 9). The area-of-a-square example below demonstrates the requested notation and steps; use it only if the source supports that formula. Keep formulas in readable notation. If a topic has no formula or math problem, use an empty array. Do not add formula sections for non-math material.
 
 Also look for specific years or dates tied to events in the text (for example a history, timeline, or chronology of developments).
 If you find any, also build a "timeline": one entry per year that has an event in the text, with a 1-2 sentence summary of what happened that year according to the text.
@@ -34,7 +34,10 @@ Reply with JSON only, no extra words, in exactly this shape:
       "name": "Topic name",
       "bulletPoints": ["One clear sentence about the topic.", "Another concise sentence about the topic."],
       "formulaExamples": [
-        { "formula": "distance = speed x time", "workedExample": "Example: At 4 m/s for 3 seconds, distance = 4 x 3 = 12 m." }
+        {
+          "formula": "area = side²",
+          "workedExample": "Step 1: The square's side is 3 cm.\nStep 2: Put the side into the formula: area = 3².\nStep 3: Square 3 by multiplying it by itself: 3 x 3 = 9.\nStep 4: The area is 9 cm²."
+        }
       ]
     }
   ],
