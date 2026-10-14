@@ -5,3 +5,4 @@ server/uploads
 
 .vercel
 .env*
+!.env.example

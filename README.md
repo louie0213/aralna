@@ -7,8 +7,9 @@ fun facts, flashcards) from any uploaded document using Groq.
 
 ## Run it
 
-1. Backend (folder server): copy .env.example to .env, set MONGO_URI, JWT_SECRET and
-   GROQ_API_KEY, then npm install, npm run seed:admin, npm run dev
+1. Backend (folder server): copy .env.example to .env, set MONGO_URI, JWT_SECRET,
+   GROQ_API_KEY, GMAIL_USER and GMAIL_APP_PASSWORD, then npm install, npm run seed:admin,
+   npm run dev
 2. Frontend (folder client): npm install, npm run dev, open http://localhost:5173
 
 ## Reviewer generation module (/app/reviewers)
@@ -67,6 +68,8 @@ To see sample numbers, run npm run seed:demo in the server folder. Remove them w
 
 POST   /api/auth/register            student sign-up
 POST   /api/auth/login
+POST   /api/auth/forgot-password     request an email reset code
+POST   /api/auth/reset-password      verify a reset code and set a new password
 POST   /api/auth/logout
 GET    /api/auth/me
 POST   /api/auth/presence
@@ -91,5 +94,15 @@ POST   /api/admin/admins             create another admin
 - A disabled account is rejected on its next request, so it is logged out immediately.
 - Inputs must be strings, which blocks NoSQL operator injection.
 - Login and register are rate limited, and login errors do not reveal which emails exist.
+- Password reset codes are emailed through Gmail SMTP, expire after 10 minutes, and are
+  single-use. Reset requests and attempts are rate limited, and reset requests do not reveal
+  whether an email is registered.
 - Uploads are capped at 20MB and restricted to a fixed list of extensions; a student can only
   read, list or delete their own documents and reviewers.
+
+## Password reset email
+
+Set `GMAIL_USER` to the Gmail address used to send messages and `GMAIL_APP_PASSWORD` to an
+App Password generated for that Google account (not its regular sign-in password). Gmail SMTP
+uses `smtp.gmail.com` over TLS. If email configuration is missing or unavailable, password
+reset requests return an error without disclosing whether the email belongs to an account.

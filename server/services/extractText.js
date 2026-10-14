@@ -122,6 +122,5 @@ export function isSupportedExtension(ext) {
 
 export async function extractText(filePath, ext) {
   const fn = EXTRACTORS[ext.toLowerCase()];
-  if (!fn) throw new Error(`Unsupported file type: ${ext}`);
-  return fn(filePath);
-}
+  if (!fn) throw new Error(`Unsupported file type: ${ext}`);  
+  return fn(filePath);}

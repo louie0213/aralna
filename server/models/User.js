@@ -6,6 +6,11 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     program: { type: String, trim: true, maxlength: 100 },
     passwordHash: { type: String, required: true, select: false },
+    passwordResetCodeHash: { type: String, select: false },
+    passwordResetExpiresAt: { type: Date, select: false },
+    passwordResetRequestedAt: { type: Date, select: false },
+    passwordResetAttempts: { type: Number, default: 0, select: false },
+    passwordChangedAt: { type: Date, select: false },
     role: { type: String, enum: ['student', 'admin'], default: 'student' },
     isSuperAdmin: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
@@ -21,6 +26,11 @@ userSchema.set('toJSON', {
   virtuals: true,
   transform: (doc, ret) => {
     delete ret.passwordHash;
+    delete ret.passwordResetCodeHash;
+    delete ret.passwordResetExpiresAt;
+    delete ret.passwordResetRequestedAt;
+    delete ret.passwordResetAttempts;
+    delete ret.passwordChangedAt;
     delete ret.__v;
     return ret;
   },

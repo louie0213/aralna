@@ -6,7 +6,11 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const TOUCH_EVERY_MS = 15 * 60 * 1000;
 
 export function signToken(user) {
-  return jwt.sign({ sub: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign(
+    { sub: user.id, passwordChangedAt: user.passwordChangedAt?.getTime() || 0 },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
 }
 
 export function setAuthCookie(res, token) {
@@ -25,9 +29,12 @@ export async function requireAuth(req, res, next) {
   if (!token) return res.status(401).json({ message: 'Log in to continue.' });
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(payload.sub);
+    const user = await User.findById(payload.sub).select('+passwordChangedAt');
     if (!user || !user.isActive) {
       return res.status(401).json({ message: 'Your session is no longer valid. Log in again.' });
+    }
+    if ((payload.passwordChangedAt || 0) !== (user.passwordChangedAt?.getTime() || 0)) {
+      return res.status(401).json({ message: 'Your password changed. Log in again.' });
     }
 
     // Track "last active" for the dashboard, at most once every 15 minutes per user.

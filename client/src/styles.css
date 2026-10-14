@@ -17,6 +17,9 @@
   --notebook-text: #202428;
   --error: #b3261e;
   --error-bg: #fcecea;
+  --success: #23633b;
+  --success-bg: #eaf6ee;
+  --success-border: #37834f;
   --font-head: 'Bricolage Grotesque', system-ui, sans-serif;
   --font-body: 'Nunito Sans', system-ui, sans-serif;
 }
@@ -42,6 +45,9 @@ html[data-theme='dark'] {
   --notebook-text: #202428;
   --error: #ff9389;
   --error-bg: #3c2421;
+  --success: #a9dfb8;
+  --success-bg: #183022;
+  --success-border: #5aab72;
 }
 
 * { box-sizing: border-box; }
@@ -72,6 +78,11 @@ a { color: var(--ink); font-weight: 700; }
 .auth-card h1 { font-size: 2rem; }
 .auth-sub { margin: 8px 0 24px; color: var(--muted); }
 .auth-switch { margin-top: 24px; color: var(--muted); }
+.auth-forgot { margin: -6px 0 10px; text-align: right; }
+.auth-link { padding: 0; color: var(--ink); background: none; border: 0; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.auth-link:focus-visible { outline: 3px solid var(--mark); outline-offset: 3px; }
+.auth-notice { margin-bottom: 16px; padding: 10px 14px; color: var(--success); background: var(--success-bg); border-left: 4px solid var(--success-border); border-radius: 4px; }
+.auth-password-help { margin: -8px 0 12px; font-size: 0.88rem; }
 
 /* Forms */
 .field { margin-bottom: 16px; }
@@ -137,6 +148,17 @@ a { color: var(--ink); font-weight: 700; }
 .shell-user { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.9rem; }
 .shell-avatar { display: grid; place-items: center; width: 34px; height: 34px; color: var(--ink); background: var(--chalk); border: 1px solid var(--line); border-radius: 50%; font-weight: 800; }
 .shell-main { max-width: 1000px; margin: 0 auto; padding: 32px 24px; }
+.route-transition { min-width: 0; animation-duration: 300ms; animation-timing-function: cubic-bezier(0.2, 0.75, 0.25, 1); animation-fill-mode: both; }
+.route-transition-forward { animation-name: route-slide-in-from-right; }
+.route-transition-back { animation-name: route-slide-in-from-left; }
+@keyframes route-slide-in-from-right {
+  from { opacity: 0.65; transform: translateX(22px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes route-slide-in-from-left {
+  from { opacity: 0.65; transform: translateX(-22px); }
+  to { opacity: 1; transform: translateX(0); }
+}
 .shell-main h1 { font-size: 1.75rem; margin-bottom: 20px; }
 .panel { margin-bottom: 20px; padding: 20px 24px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; }
 .panel h2 { font-size: 1.15rem; margin-bottom: 12px; }

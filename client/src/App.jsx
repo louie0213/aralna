@@ -13,6 +13,7 @@ import Users from './pages/admin/Users.jsx';
 import Files from './pages/admin/Files.jsx';
 import AddAdmin from './pages/admin/AddAdmin.jsx';
 import Landing from './pages/Landing.jsx';
+import RouteTransition from './components/RouteTransition.jsx';
 
 const homeFor = (user) => (user.role === 'admin' ? '/admin' : '/app');
 
@@ -45,16 +46,20 @@ export default function App() {
       <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
       <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
       <Route path="/app" element={<Guarded role={['student', 'admin']}><StudentLayout /></Guarded>}>
-        <Route index element={<StudentHome />} />
-        <Route path="upload" element={<Upload />} />
-        <Route path="reviewers" element={<Reviewers />} />
-        <Route path="reviewers/:id" element={<Reviewer />} />
+        <Route element={<RouteTransition />}>
+          <Route index element={<StudentHome />} />
+          <Route path="upload" element={<Upload />} />
+          <Route path="reviewers" element={<Reviewers />} />
+          <Route path="reviewers/:id" element={<Reviewer />} />
+        </Route>
       </Route>
       <Route path="/admin" element={<Guarded role="admin"><AdminLayout /></Guarded>}>
-        <Route index element={<Overview />} />
-        <Route path="users" element={<Users />} />
-        <Route path="files" element={<Files />} />
-        <Route path="admins/new" element={<SuperAdminOnly><AddAdmin /></SuperAdminOnly>} />
+        <Route element={<RouteTransition />}>
+          <Route index element={<Overview />} />
+          <Route path="users" element={<Users />} />
+          <Route path="files" element={<Files />} />
+          <Route path="admins/new" element={<SuperAdminOnly><AddAdmin /></SuperAdminOnly>} />
+        </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
