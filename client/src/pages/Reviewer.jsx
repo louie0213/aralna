@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../AuthContext.jsx';
 import { api } from '../api.js';
 
 function getTopics(reviewer) {
@@ -29,13 +30,18 @@ function getWorkedExampleSteps(workedExample) {
 export default function Reviewer() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [reviewer, setReviewer] = useState(null);
   const [error, setError] = useState('');
   const [view, setView] = useState('topics');
+  const [selectedTopic, setSelectedTopic] = useState('all');
+  const [selectedPerson, setSelectedPerson] = useState('all');
   const [selectedYear, setSelectedYear] = useState('all');
   const [selectedTerm, setSelectedTerm] = useState('');
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState('');
+  const [generatingQuiz, setGeneratingQuiz] = useState(false);
+  const [quizError, setQuizError] = useState('');
 
   useEffect(() => {
     api.get(`/reviewers/${id}`).then((d) => setReviewer(d.reviewer)).catch((err) => setError(err.message));
@@ -48,6 +54,19 @@ export default function Reviewer() {
       navigate('/app/reviewers', { replace: true });
     } catch (err) {
       setError(err.message);
+    }
+  }
+
+  async function startPracticeQuiz() {
+    setGeneratingQuiz(true);
+    setQuizError('');
+    try {
+      const { quiz } = await api.post(`/reviewers/${id}/quiz`, {});
+      navigate(`/app/quizzes/${quiz.id}`);
+    } catch (err) {
+      setQuizError(err.message);
+    } finally {
+      setGeneratingQuiz(false);
     }
   }
 
@@ -73,12 +92,20 @@ export default function Reviewer() {
   const keyTerms = (reviewer.keyTerms || []).filter(
     (entry) => entry && typeof entry.term === 'string' && typeof entry.definition === 'string'
   );
+  const people = [...new Set((reviewer.people || []).filter((person) => typeof person === 'string' && person.trim()))];
   const availableViews = [
     ...(topics.length > 0 ? ['topics'] : []),
+    ...(people.length > 0 ? ['people'] : []),
     ...(years.length > 0 ? ['years'] : []),
     ...(keyTerms.length > 0 ? ['terms'] : []),
   ];
   const selectedView = availableViews.includes(view) ? view : availableViews[0] || 'topics';
+  const selectedTopics = selectedTopic === 'all'
+    ? topics
+    : topics.filter((topic, index) => String(index) === selectedTopic);
+  const selectedPeople = selectedPerson === 'all'
+    ? people
+    : people.filter((person) => person === selectedPerson);
   const selectedTimeline = selectedYear === 'all'
     ? timeline
     : timeline.filter((entry) => entry.year === selectedYear);
@@ -176,9 +203,22 @@ export default function Reviewer() {
           <label htmlFor="reviewer-view">Show</label>
           <select id="reviewer-view" value={selectedView} onChange={(e) => setView(e.target.value)}>
             {topics.length > 0 && <option value="topics">Topics</option>}
+            {people.length > 0 && <option value="people">Names</option>}
             {years.length > 0 && <option value="years">Years</option>}
             {keyTerms.length > 0 && <option value="terms">Terms</option>}
           </select>
+          {selectedView === 'topics' && topics.length > 0 && (
+            <select aria-label="Choose a topic" value={selectedTopic} onChange={(e) => setSelectedTopic(e.target.value)}>
+              <option value="all">All topics</option>
+              {topics.map((topic, index) => <option key={`${topic.name}-${index}`} value={index}>{topic.name}</option>)}
+            </select>
+          )}
+          {selectedView === 'people' && people.length > 0 && (
+            <select aria-label="Choose a person" value={selectedPerson} onChange={(e) => setSelectedPerson(e.target.value)}>
+              <option value="all">All names</option>
+              {people.map((person) => <option key={person} value={person}>{person}</option>)}
+            </select>
+          )}
           {selectedView === 'years' && years.length > 0 && (
             <select aria-label="Choose a year" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
               <option value="all">All years</option>
@@ -195,7 +235,7 @@ export default function Reviewer() {
       )}
 
       <div className="reviewer-topics">
-        {selectedView === 'topics' && topics.map((topic, index) => (
+        {selectedView === 'topics' && selectedTopics.map((topic, index) => (
           <section className="reviewer-topic" key={`${topic.name}-${index}`}>
             <h2>{topic.name}</h2>
             <ul>
@@ -223,6 +263,12 @@ export default function Reviewer() {
             )}
           </section>
         ))}
+        {selectedView === 'people' && selectedPeople.map((person) => (
+          <section className="reviewer-topic" key={person}>
+            <h2>{person}</h2>
+          </section>
+        ))}
+        {selectedView === 'people' && people.length === 0 && <p className="muted">No people were identified in this document.</p>}
         {selectedView === 'years' && selectedTimeline.map((entry, index) => (
           <section className="reviewer-topic" key={`${entry.year}-${index}`}>
             <h2>{entry.year}</h2>
@@ -238,6 +284,21 @@ export default function Reviewer() {
         {selectedView === 'topics' && topics.length === 0 && <p className="muted">No topic notes were generated for this document.</p>}
       </div>
 
+      {user.role === 'student' && (
+        <>
+          <section className="reviewer-quiz-cta">
+            <div>
+              <p className="page-eyebrow">READY TO CHECK YOUR UNDERSTANDING?</p>
+              <h2>Practice with this reviewer</h2>
+              <p>Generate a quiz from these notes. Your score is recorded, with up to five attempts.</p>
+            </div>
+            <button className="btn btn-primary" type="button" onClick={startPracticeQuiz} disabled={generatingQuiz}>
+              {generatingQuiz ? 'Preparing your quiz...' : 'Take practice quiz'} <span aria-hidden="true">↗</span>
+            </button>
+          </section>
+          {quizError && <div className="alert" role="alert">{quizError}</div>}
+        </>
+      )}
       <button className="btn btn-ghost" onClick={remove}>Delete reviewer</button>
     </>
   );

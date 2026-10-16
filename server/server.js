@@ -8,6 +8,7 @@ import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
 import documentRoutes from './routes/documents.js';
 import reviewerRoutes from './routes/reviewers.js';
+import quizRoutes from './routes/quizzes.js';
 
 const { MONGO_URI, JWT_SECRET, CLIENT_URL = 'http://localhost:5173', PORT = 5000 } = process.env;
 
@@ -27,6 +28,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/reviewers', reviewerRoutes);
+app.use('/api/quizzes', quizRoutes);
 
 app.use((req, res) => res.status(404).json({ message: 'Route not found.' }));
 app.use((err, req, res, next) => {

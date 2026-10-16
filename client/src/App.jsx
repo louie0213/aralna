@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
@@ -12,6 +12,9 @@ import Overview from './pages/admin/Overview.jsx';
 import Users from './pages/admin/Users.jsx';
 import Files from './pages/admin/Files.jsx';
 import AddAdmin from './pages/admin/AddAdmin.jsx';
+import AdminQuizzes from './pages/admin/Quizzes.jsx';
+import Quizzes from './pages/Quizzes.jsx';
+import Quiz from './pages/Quiz.jsx';
 import Landing from './pages/Landing.jsx';
 import RouteTransition from './components/RouteTransition.jsx';
 
@@ -39,29 +42,45 @@ function SuperAdminOnly({ children }) {
   return children;
 }
 
+function QuizFocusGuard({ children }) {
+  const { user, activeQuizId } = useAuth();
+  const location = useLocation();
+  const quizPath = activeQuizId ? `/app/quizzes/${activeQuizId}` : '';
+
+  if (user?.role === 'student' && activeQuizId && location.pathname !== quizPath) {
+    return <Navigate to={quizPath} replace state={{ quizNavigationBlocked: true }} />;
+  }
+  return children;
+}
+
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
-      <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
-      <Route path="/app" element={<Guarded role={['student', 'admin']}><StudentLayout /></Guarded>}>
-        <Route element={<RouteTransition />}>
-          <Route index element={<StudentHome />} />
-          <Route path="upload" element={<Upload />} />
-          <Route path="reviewers" element={<Reviewers />} />
-          <Route path="reviewers/:id" element={<Reviewer />} />
+    <QuizFocusGuard>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
+        <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
+        <Route path="/app" element={<Guarded role={['student', 'admin']}><StudentLayout /></Guarded>}>
+          <Route element={<RouteTransition />}>
+            <Route index element={<StudentHome />} />
+            <Route path="upload" element={<Upload />} />
+            <Route path="reviewers" element={<Reviewers />} />
+            <Route path="reviewers/:id" element={<Reviewer />} />
+            <Route path="quizzes" element={<Quizzes />} />
+            <Route path="quizzes/:id" element={<Quiz />} />
+          </Route>
         </Route>
-      </Route>
-      <Route path="/admin" element={<Guarded role="admin"><AdminLayout /></Guarded>}>
-        <Route element={<RouteTransition />}>
-          <Route index element={<Overview />} />
-          <Route path="users" element={<Users />} />
-          <Route path="files" element={<Files />} />
-          <Route path="admins/new" element={<SuperAdminOnly><AddAdmin /></SuperAdminOnly>} />
+        <Route path="/admin" element={<Guarded role="admin"><AdminLayout /></Guarded>}>
+          <Route element={<RouteTransition />}>
+            <Route index element={<Overview />} />
+            <Route path="users" element={<Users />} />
+            <Route path="files" element={<Files />} />
+            <Route path="quizzes" element={<AdminQuizzes />} />
+            <Route path="admins/new" element={<SuperAdminOnly><AddAdmin /></SuperAdminOnly>} />
+          </Route>
         </Route>
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </QuizFocusGuard>
   );
 }

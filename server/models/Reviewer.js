@@ -46,6 +46,7 @@ const reviewerSchema = new mongoose.Schema(
     importantTopics: { type: [String], default: [] },
     minorTopics: { type: [String], default: [] },
     keyTerms: { type: [keyTermSchema], default: [] },
+    people: [{ type: String, trim: true, maxlength: 100 }],
     conceptRelationships: { type: [String], default: [] },
     examples: { type: [String], default: [] },
     commonMisconceptions: { type: [String], default: [] },

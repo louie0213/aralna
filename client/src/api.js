@@ -21,7 +21,7 @@ export const api = {
   patch: (path, body) => request(path, { method: 'PATCH', body }),
   delete: (path) => request(path, { method: 'DELETE' }),
   // Uses XHR instead of fetch so upload progress can be reported.
-  upload: (path, file, { onProgress } = {}) =>
+  upload: (path, file, { onProgress, fields = {} } = {}) =>
     new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open('POST', `/api${path}`);
@@ -42,6 +42,7 @@ export const api = {
       xhr.onerror = () => reject(new Error('Upload failed. Check your connection.'));
       const form = new FormData();
       form.append('file', file);
+      Object.entries(fields).forEach(([name, value]) => form.append(name, value));
       xhr.send(form);
     }),
 };

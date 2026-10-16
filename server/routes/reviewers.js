@@ -2,9 +2,11 @@ import { Router } from 'express';
 import mongoose from 'mongoose';
 import Document from '../models/Document.js';
 import Reviewer from '../models/Reviewer.js';
+import Quiz from '../models/Quiz.js';
 import { requireAuth } from '../middleware/auth.js';
 import { generateReviewer } from '../services/reviewerAI.js';
 import { recordGeneration } from '../services/generations.js';
+import { generatePracticeQuestions } from '../services/practiceQuizAI.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -59,6 +61,43 @@ router.get('/:id', async (req, res, next) => {
     const reviewer = await Reviewer.findOne({ _id: req.params.id, user: req.user.id });
     if (!reviewer) return res.status(404).json({ message: 'Reviewer not found.' });
     res.json({ reviewer });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/:id/quiz', async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ message: 'Invalid reviewer ID.' });
+    const reviewer = await Reviewer.findOne({ _id: req.params.id, user: req.user.id });
+    if (!reviewer) return res.status(404).json({ message: 'Reviewer not found.' });
+    if (reviewer.status !== 'ready') return res.status(400).json({ message: 'Only a ready reviewer can be used to create a practice quiz.' });
+
+    const existingQuiz = await Quiz.findOne({ sourceReviewer: reviewer.id });
+    if (existingQuiz) return res.json({ quiz: { id: existingQuiz.id } });
+
+    const questions = await generatePracticeQuestions(reviewer);
+    let quiz;
+    try {
+      quiz = await Quiz.create({
+        title: `${reviewer.documentName.replace(/\.[^.]+$/, '').slice(0, 100)} Practice Quiz`,
+        description: 'AI-generated questions based on this reviewer. You can make up to five attempts.',
+        questions,
+        owner: req.user.id,
+        sourceReviewer: reviewer.id,
+        audience: 'reviewer',
+      });
+    } catch (err) {
+      if (err.code !== 11000) throw err;
+      quiz = await Quiz.findOne({ sourceReviewer: reviewer.id });
+      if (!quiz) throw err;
+    }
+
+    const topic = reviewer.topics[0]?.name || reviewer.documentName;
+    await recordGeneration({ userId: req.user.id, type: 'quiz', topic }).catch((err) => {
+      console.error('Could not record practice quiz generation:', err.message);
+    });
+    res.status(201).json({ quiz: { id: quiz.id } });
   } catch (err) {
     next(err);
   }

@@ -28,8 +28,13 @@ then saves a Reviewer with:
 
 - a whole-document summary
 - primary topics and minor topics
+- names of people mentioned in the source document
 - fun facts
 - flashcards, shown as flip cards the student can tap through
+
+The reviewer **Show** filter can display topic headings, named people, timeline years, or key terms.
+People names are extracted from the source text when the reviewer is generated; reviewers created
+before this field was added need to be regenerated to populate their Names filter.
 
 Past reviewers are listed under Reviewers in the student nav bar. Each generation also logs an
 entry the admin dashboard counts (type summary, and flashcards when any were produced), using the
@@ -81,11 +86,34 @@ POST   /api/reviewers/generate       body { documentId }
 GET    /api/reviewers?documentId=
 GET    /api/reviewers/:id
 DELETE /api/reviewers/:id
+POST   /api/reviewers/:id/quiz       create or open a practice quiz from that reviewer
+GET    /api/quizzes                  list published quizzes (admins also see attempt counts)
+POST   /api/quizzes                  admin: publish a quiz to all active students
+POST   /api/quizzes/generate-from-file admin: generate quiz questions from an uploaded source
+GET    /api/quizzes/:id              get a quiz without its answer key
+GET    /api/quizzes/:id/results      admin: view student scores
+POST   /api/quizzes/:id/attempts     student: submit one of up to five attempts
 GET    /api/admin/stats              admin only
 GET    /api/admin/users?role=&status=&q=
 GET    /api/admin/files?page=         admin only; paginated upload metadata and uploader
 PATCH  /api/admin/users/:id/active   disable or enable
 POST   /api/admin/admins             create another admin
+
+## LMS quizzes
+
+Admins can create quizzes from **Admin workspace → Quizzes**. Each quiz can include multiple-choice,
+identification, and true/false questions, and can be published either to all active students or to
+specific active students selected by name or email. Admins may also upload a PDF, DOCX, PPTX, TXT,
+PNG, JPG, JPEG, or WEBP source, choose 1–50 questions, and generate quiz questions with the configured
+Groq model. The generated questions and answer key are available for admin review/editing before
+publishing; the temporary source upload is removed after generation. Each student attempt receives a
+randomized question order and randomized multiple-choice option order. Students find quizzes assigned
+to them under **Quizzes** in their study space. Answers are graded automatically;
+identification answers ignore capitalization and extra spaces. Students may submit up to five attempts
+per quiz, and every score is recorded. Admins can review all student attempts and scores from the
+published quiz list. The quiz API never returns the answer key to students. At the bottom of each
+ready reviewer, students can generate a reviewer-specific practice quiz; it is saved to their account
+so its five-attempt score history persists.
 
 ## Security choices
 
@@ -105,6 +133,14 @@ POST   /api/admin/admins             create another admin
 For local development, set `EMAIL_PROVIDER=gmail`, `GMAIL_USER` to the full Gmail sender
 address, and `GMAIL_APP_PASSWORD` to an App Password for that account (not its regular
 sign-in password). Gmail SMTP uses `smtp.gmail.com` on port 587 with required STARTTLS.
+
+To use Gmail's HTTPS API locally or on Render, set `EMAIL_PROVIDER=gmail-api` and configure
+`GMAIL_USER`, `GMAIL_OAUTH_CLIENT_ID`, `GMAIL_OAUTH_CLIENT_SECRET`, and
+`GMAIL_OAUTH_REFRESH_TOKEN`. Create OAuth credentials in Google Cloud Console, enable the
+Gmail API, and authorize the sender account with the `https://www.googleapis.com/auth/gmail.send`
+scope to obtain the refresh token. Store all OAuth values as backend environment variables.
+This uses HTTPS instead of SMTP, but Google OAuth consent-screen and refresh-token policies
+still apply.
 
 For Render, set `EMAIL_PROVIDER=brevo`, `BREVO_API_KEY` to an API key from your Brevo
 account, and `BREVO_FROM_EMAIL` to a sender address verified in Brevo. Optionally set

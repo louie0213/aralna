@@ -17,6 +17,7 @@ export default function AdminLayout() {
           <NavLink to="/admin" end>Overview</NavLink>
           <NavLink to="/admin/users">Users</NavLink>
           <NavLink to="/admin/files">Files</NavLink>
+          <NavLink to="/admin/quizzes">Quizzes</NavLink>
           {user.isSuperAdmin && <NavLink to="/admin/admins/new">Add admin</NavLink>}
           <NavLink to="/app">Student app</NavLink>
         </nav>

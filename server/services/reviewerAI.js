@@ -11,6 +11,8 @@ const MAX_WORKED_EXAMPLE_CHARS = 600;
 const MAX_KEY_TERMS = 15;
 const MAX_TERM_CHARS = 100;
 const MAX_DEFINITION_CHARS = 400;
+const MAX_PEOPLE = 30;
+const MAX_PERSON_NAME_CHARS = 100;
 const MAX_TIMELINE_ENTRIES = 24;
 const MAX_YEAR_CHARS = 20;
 const MAX_TIMELINE_SUMMARY_CHARS = 300;
@@ -26,6 +28,8 @@ For topics whose source material contains a mathematical formula or a problem th
 Also look for specific years or dates tied to events in the text (for example a history, timeline, or chronology of developments).
 If you find any, also build a "timeline": one entry per year that has an event in the text, with a 1-2 sentence summary of what happened that year according to the text.
 If the text does not mention any specific years, return an empty array for "timeline". Do not invent years or events that are not in the text.
+
+Also list up to 30 real people explicitly named in the source text. Include each person's name once. Do not include fictional example names, places, organizations, or inferred people. Return an empty array if no people are named.
 
 Reply with JSON only, no extra words, in exactly this shape:
 {
@@ -46,7 +50,8 @@ Reply with JSON only, no extra words, in exactly this shape:
   ],
   "timeline": [
     { "year": "1896", "summary": "One or two sentences on what happened that year, based only on the text." }
-  ]
+  ],
+  "people": ["Marie Curie", "Albert Einstein"]
 }`;
 
 const clip = (str, max) => {
@@ -101,7 +106,14 @@ function sanitize(raw) {
         .filter((entry) => entry.term && entry.definition)
     : [];
 
-  return { topics, keyTerms, timeline };
+  const people = Array.isArray(raw.people)
+    ? [...new Set(raw.people
+        .filter((person) => typeof person === 'string' && person.trim())
+        .slice(0, MAX_PEOPLE)
+        .map((person) => clip(person, MAX_PERSON_NAME_CHARS)))].filter(Boolean)
+    : [];
+
+  return { topics, keyTerms, timeline, people };
 }
 
 export async function generateReviewer(text, documentName) {
