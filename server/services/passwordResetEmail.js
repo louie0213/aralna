@@ -36,7 +36,7 @@ function getTransporter() {
 }
 
 function getEmailContent(code) {
-  return {
+  return {  
     subject: 'Your AralNa password reset code',
     text: `Your AralNa password reset code is ${code}. It expires in 10 minutes. If you did not request this, you can ignore this email.`,
     html: `<p>Your AralNa password reset code is:</p><p style="font-size:24px;font-weight:bold;letter-spacing:5px">${code}</p><p>This code expires in 10 minutes. If you did not request this, you can ignore this email.</p>`,

@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import { Link } from 'react-router-dom';
+import BrandMark from './BrandMark.jsx';
 
 export default function StudentLayout() {
   const { user, logout, activeQuizId } = useAuth();
@@ -10,13 +11,13 @@ export default function StudentLayout() {
       <header className="shell-bar">
         {activeQuizId ? (
           <span className="shell-brand" aria-label="AralNa">
-            <span className="shell-brand-mark" aria-hidden="true">A</span>
+            <BrandMark className="shell-brand-mark" />
             <span className="shell-brand-name">AralNa</span>
             <span className="shell-role">Quiz in progress</span>
           </span>
         ) : (
           <Link className="shell-brand" to="/">
-          <span className="shell-brand-mark" aria-hidden="true">A</span>
+          <BrandMark className="shell-brand-mark" />
           <span className="shell-brand-name">AralNa</span>
           <span className="shell-role">Student</span>
           </Link>

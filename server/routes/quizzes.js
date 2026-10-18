@@ -115,7 +115,7 @@ function normalizeAnswer(value) {
 
 router.get('/', async (req, res, next) => {
   try {
-    if (req.user.role === 'admin') {
+      if (req.user.role === 'admin') {
       const [quizzes, assignedStudents, attemptCounts] = await Promise.all([
         Quiz.find({ audience: 'assigned' }).select('title description questions createdBy createdAt assignmentMode assignedTo').populate('createdBy', 'fullName').sort({ createdAt: -1 }),
         User.countDocuments({ role: 'student', isActive: true }),

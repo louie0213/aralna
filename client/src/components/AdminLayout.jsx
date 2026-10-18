@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import { Link } from 'react-router-dom';
+import BrandMark from './BrandMark.jsx';
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
@@ -9,7 +10,7 @@ export default function AdminLayout() {
     <div className="shell">
       <header className="shell-bar">
         <Link className="shell-brand" to="/">
-          <span className="shell-brand-mark" aria-hidden="true">A</span>
+          <BrandMark className="shell-brand-mark" />
           <span className="shell-brand-name">AralNa</span>
           <span className="shell-role">{user.isSuperAdmin ? 'Super admin' : 'Admin'}</span>
         </Link>

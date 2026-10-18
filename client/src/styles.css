@@ -164,7 +164,7 @@ a { color: var(--ink); font-weight: 700; }
   animation: shell-bar-enter 420ms ease both;
 }
 .shell-brand { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 9px; color: var(--ink); font-family: var(--font-head); text-decoration: none; }
-.shell-brand-mark { display: grid; place-items: center; width: 36px; height: 36px; color: var(--paper); background: var(--ink); border-radius: 12px; font-size: 1.1rem; font-weight: 800; transition: transform 220ms ease; }
+.shell-brand-mark { display: block; flex: 0 0 auto; width: 36px; height: 36px; transition: transform 220ms ease; }
 .shell-brand:hover .shell-brand-mark { transform: rotate(-8deg) scale(1.06); }
 .shell-brand-name { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.04em; }
 .shell-role { margin-left: 2px; padding: 4px 8px; color: var(--muted); background: var(--chalk); border: 1px solid var(--line); border-radius: 999px; font-family: var(--font-body); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; }
@@ -407,7 +407,10 @@ tbody tr:last-child td { border-bottom: 0; }
 }
 .landing-nav { min-height: 82px; border-bottom: 1px solid var(--line); }
 .landing-brand { display: inline-flex; align-items: center; gap: 9px; color: var(--text); font-family: var(--font-head); font-size: 1.25rem; text-decoration: none; }
-.brand-mark { display: grid; width: 30px; aspect-ratio: 1; place-items: center; color: #fff; background: var(--ink); border-radius: 8px; font-family: var(--font-head); font-size: 1rem; }
+.brand-mark { display: block; flex: 0 0 auto; width: 30px; height: 30px; }
+.logo-mark__background { fill: var(--ink); }
+.logo-mark__book { fill: none; stroke: var(--paper); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.logo-mark__accent { fill: #e7b75b; }
 .landing-links, .landing-actions { display: flex; align-items: center; gap: 24px; }
 .landing-links a, .landing-login { color: var(--muted); font-size: 0.92rem; text-decoration: none; }
 .landing-links a:hover, .landing-login:hover { color: var(--text); }
@@ -494,7 +497,6 @@ html[data-theme='dark'] .notice { color: var(--text); background: #202020; borde
 html[data-theme='dark'] .badge { color: var(--text); background: #303030; }
 html[data-theme='dark'] .badge-off { color: var(--error); background: var(--error-bg); }
 html[data-theme='dark'] .bar-fill { border-right-color: var(--text); }
-html[data-theme='dark'] .brand-mark { color: #080808; }
 html[data-theme='dark'] .landing .btn-primary { color: #080808; background: #f1f1f1; }
 html[data-theme='dark'] .landing .btn-primary:hover { background: #d8d8d8; }
 html[data-theme='dark'] .study-preview { box-shadow: 0 28px 65px rgba(0, 0, 0, 0.45); }
@@ -537,7 +539,7 @@ html[data-theme='dark'] .study-preview { box-shadow: 0 28px 65px rgba(0, 0, 0, 0
 }
 @media (max-width: 420px) {
   .landing-brand { font-size: 1.05rem; }
-  .brand-mark { width: 27px; }
+  .brand-mark { width: 27px; height: 27px; }
   .landing-actions { gap: 7px; }
   .landing-actions .theme-toggle { width: 36px; height: 36px; min-height: 36px; }
   .landing-actions .landing-cta { min-height: 38px; padding: 8px 10px; font-size: 0.85rem; }

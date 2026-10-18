@@ -1,6 +1,6 @@
 import Groq from 'groq-sdk';
 
-const MAX_INPUT_CHARS = 12000;
+  const MAX_INPUT_CHARS = 12000;
 const DEFAULT_QUESTION_COUNT = 20;
 
 const clip = (value, max) => String(value || '').trim().slice(0, max);

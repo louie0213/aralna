@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import { useTheme } from '../ThemeContext.jsx';
 import ThemeToggle from '../components/ThemeToggle.jsx';
+import BrandMark from '../components/BrandMark.jsx';
 
 const homeFor = (user) => user.role === 'admin' ? '/admin' : '/app';
 
@@ -14,7 +15,7 @@ export default function Landing() {
     <div className="landing" data-theme={theme}>
       <header className="landing-nav">
         <Link className="landing-brand" to="/" aria-label="AralNa home">
-          <span className="brand-mark">a.</span> AralNa
+          <BrandMark className="brand-mark" /> AralNa
         </Link>
         <nav className="landing-links" aria-label="Main navigation">
           <a href="#how-it-works">How it works</a>
@@ -86,7 +87,7 @@ export default function Landing() {
           <div className="tools-row"><h2>Study materials that work together.</h2><p>Keep your uploads, generated reviewers, and progress together in one calm workspace.</p><Link to={dashboardPath}>Explore your workspace <span aria-hidden="true">↗</span></Link></div>
         </section>
       </main>
-      <footer className="landing-footer"><Link className="landing-brand" to="/"><span className="brand-mark">a.</span> AralNa</Link><span>Make room for understanding.</span><Link to={user ? dashboardPath : '/login'}>{user ? 'Dashboard' : 'Log in'} <span aria-hidden="true">↗</span></Link></footer>
+      <footer className="landing-footer"><Link className="landing-brand" to="/"><BrandMark className="brand-mark" /> AralNa</Link><span>Make room for understanding.</span><Link to={user ? dashboardPath : '/login'}>{user ? 'Dashboard' : 'Log in'} <span aria-hidden="true">↗</span></Link></footer>
     </div>
   );
 }
