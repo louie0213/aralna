@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import Dropzone from '../components/Dropzone.jsx';
 import { api } from '../api.js';
@@ -69,7 +70,7 @@ export default function Upload() {
 
   return (
     <div className="upload-page" aria-busy={Boolean(generatingId)}>
-      {generatingId && (
+      {generatingId && createPortal(
         <div className="generation-screen" role="status" aria-live="polite" aria-label="Generating study reviewer">
           <section className="generation-window">
             <span className="generation-spinner" aria-hidden="true" />
@@ -81,7 +82,8 @@ export default function Upload() {
             <div className="generation-progress" aria-hidden="true"><span /></div>
             <p className="generation-note">Analyzing your material. This can take a little while.</p>
           </section>
-        </div>
+        </div>,
+        document.body
       )}
       <h1>Upload documents</h1>
       {error && <div className="alert" role="alert">{error}</div>}

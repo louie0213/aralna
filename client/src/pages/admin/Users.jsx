@@ -15,6 +15,7 @@ export default function Users() {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [busyUserId, setBusyUserId] = useState('');
 
   useEffect(() => {
     const t = setTimeout(() => setSearch(q.trim()), 300);
@@ -34,14 +35,31 @@ export default function Users() {
       .finally(() => setLoading(false));
   }, [role, status, search]);
 
-  async function toggle(u) {
-    if (u.isActive && !window.confirm(`Disable ${u.fullName}? They will be logged out and cannot log in until you enable the account again.`)) return;
+  async function toggleStatus(u) {
+    if (u.isActive && !window.confirm(`Suspend ${u.fullName}? They will be logged out and cannot log in until you restore the account.`)) return;
     setError('');
+    setBusyUserId(u.id);
     try {
       const { user } = await api.patch(`/admin/users/${u.id}/active`, { isActive: !u.isActive });
       setUsers((list) => list.map((x) => (x.id === user.id ? user : x)));
     } catch (err) {
       setError(err.message);
+    } finally {
+      setBusyUserId('');
+    }
+  }
+
+  async function deleteAccount(u) {
+    if (!window.confirm(`Permanently delete ${u.fullName} (${u.email}) and all of their learning data? This cannot be undone.`)) return;
+    setError('');
+    setBusyUserId(u.id);
+    try {
+      await api.delete(`/admin/users/${u.id}`);
+      setUsers((list) => list.filter((x) => x.id !== u.id));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyUserId('');
     }
   }
 
@@ -52,7 +70,7 @@ export default function Users() {
           <p className="page-eyebrow">ADMIN WORKSPACE / DIRECTORY</p>
           <h1>Users</h1>
           <p className="page-description">
-            {isSuperAdmin ? 'Manage access and review account activity.' : 'Monitor account status and activity.'}
+            {isSuperAdmin ? 'Manage access, suspend accounts, or permanently delete them.' : 'Monitor account status and activity.'}
           </p>
         </div>
         {isSuperAdmin && (
@@ -73,7 +91,7 @@ export default function Users() {
         <select className="user-filter" aria-label="Filter by status" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="">Any status</option>
           <option value="active">Enabled</option>
-          <option value="disabled">Disabled</option>
+          <option value="disabled">Suspended</option>
         </select>
         <span className="results-count">{loading ? 'Updating...' : `${users.length} ${users.length === 1 ? 'account' : 'accounts'}`}</span>
       </div>
@@ -93,13 +111,24 @@ export default function Users() {
                 <td data-label="Name"><span className="user-name">{u.fullName}</span></td>
                 <td data-label="Email" className="user-email">{u.email}</td>
                 <td data-label="Role"><span className="role-label">{u.isSuperAdmin ? 'Super admin' : u.role}</span></td>
-                <td data-label="Status"><span className={u.isActive ? 'badge badge-on' : 'badge badge-off'}>{u.isActive ? 'Enabled' : 'Disabled'}</span></td>
+                <td data-label="Status"><span className={u.isActive ? 'badge badge-on' : 'badge badge-off'}>{u.isActive ? 'Enabled' : 'Suspended'}</span></td>
                 <td data-label="Last active" className="last-active">{fmt(u.lastActiveAt)}</td>
                 {isSuperAdmin && (
                   <td data-label="Account access" className="user-action-cell">
-                    <button className="btn btn-ghost user-action" disabled={u.id === me.id || u.isSuperAdmin} onClick={() => toggle(u)} aria-label={`${u.isActive ? 'Disable' : 'Enable'} ${u.fullName}`}>
-                      {u.isSuperAdmin ? 'Protected' : u.id === me.id ? 'You' : u.isActive ? 'Disable' : 'Enable'}
-                    </button>
+                    {u.isSuperAdmin || u.id === me.id ? (
+                      <button className="btn btn-ghost user-action" disabled aria-label={u.isSuperAdmin ? 'Super admin account is protected' : 'Your own account'}>
+                        {u.isSuperAdmin ? 'Protected' : 'You'}
+                      </button>
+                    ) : (
+                      <>
+                        <button className="btn btn-ghost user-action" disabled={busyUserId === u.id} onClick={() => toggleStatus(u)} aria-label={`${u.isActive ? 'Suspend' : 'Restore'} ${u.fullName}`}>
+                          {busyUserId === u.id ? 'Saving...' : u.isActive ? 'Suspend' : 'Restore'}
+                        </button>
+                        <button className="btn btn-ghost user-action user-delete-action" disabled={busyUserId === u.id} onClick={() => deleteAccount(u)} aria-label={`Permanently delete ${u.fullName}`}>
+                          Delete
+                        </button>
+                      </>
+                    )}
                   </td>
                 )}
               </tr>

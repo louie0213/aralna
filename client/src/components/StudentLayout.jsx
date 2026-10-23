@@ -7,7 +7,7 @@ import BrandMark from './BrandMark.jsx';
 export default function StudentLayout() {
   const { user, logout, activeQuizId } = useAuth();
   return (
-    <div className="shell">
+    <div className="shell shell-student">
       <header className="shell-bar">
         {activeQuizId ? (
           <span className="shell-brand" aria-label="AralNa">

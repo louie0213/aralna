@@ -102,6 +102,7 @@ export default function AdminQuizzes() {
   const [results, setResults] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deletingQuizId, setDeletingQuizId] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
 
@@ -200,6 +201,27 @@ export default function AdminQuizzes() {
       setResults((current) => ({ ...current, [quizId]: data.attempts }));
     } catch (err) {
       setError(err.message);
+    }
+  }
+
+  async function deleteQuiz(quiz) {
+    if (!window.confirm(`Delete "${quiz.title}"? Students will lose access, and all scores for this quiz will be permanently deleted.`)) return;
+    setError('');
+    setNotice('');
+    setDeletingQuizId(quiz.id);
+    try {
+      await api.delete(`/quizzes/${quiz.id}`);
+      setQuizzes((current) => current.filter((item) => item.id !== quiz.id));
+      setResults((current) => {
+        const updated = { ...current };
+        delete updated[quiz.id];
+        return updated;
+      });
+      setNotice(`"${quiz.title}" and its attempt records were deleted.`);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setDeletingQuizId('');
     }
   }
 
@@ -332,9 +354,21 @@ export default function AdminQuizzes() {
                   {quiz.description && <p className="muted">{quiz.description}</p>}
                   <span className="doc-meta">{quiz.questionCount} questions · {quiz.assignmentMode === 'selected' ? `${quiz.assignedStudents} selected students` : `${quiz.assignedStudents} active students`} · {quiz.attemptsCount} attempts · Published {fmtDate(quiz.createdAt)}</span>
                 </div>
-                <button className="btn btn-ghost btn-small" type="button" onClick={() => toggleResults(quiz.id)}>
-                  {results[quiz.id] ? 'Hide scores' : 'View scores'}
-                </button>
+                <div className="quiz-admin-actions">
+                  <button className="btn btn-ghost btn-small" type="button" onClick={() => toggleResults(quiz.id)}>
+                    {results[quiz.id] ? 'Hide scores' : 'View scores'}
+                  </button>
+                  {quiz.canDelete && (
+                    <button
+                      className="btn btn-ghost btn-small quiz-delete-action"
+                      type="button"
+                      disabled={deletingQuizId === quiz.id}
+                      onClick={() => deleteQuiz(quiz)}
+                    >
+                      {deletingQuizId === quiz.id ? 'Deleting...' : 'Delete'}
+                    </button>
+                  )}
+                </div>
                 {results[quiz.id] && (
                   <div className="table-wrap quiz-results">
                     <table className="users-table">

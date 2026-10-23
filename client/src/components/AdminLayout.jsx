@@ -7,7 +7,7 @@ import BrandMark from './BrandMark.jsx';
 export default function AdminLayout() {
   const { user, logout } = useAuth();
   return (
-    <div className="shell">
+    <div className="shell shell-admin">
       <header className="shell-bar">
         <Link className="shell-brand" to="/">
           <BrandMark className="shell-brand-mark" />

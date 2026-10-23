@@ -16,9 +16,14 @@ export default function Quiz() {
   const [remainingAttempts, setRemainingAttempts] = useState(5);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [attemptStarted, setAttemptStarted] = useState(false);
   const [error, setError] = useState('');
   const [submission, setSubmission] = useState(null);
   const [navigationWarning, setNavigationWarning] = useState(false);
+
+  useEffect(() => {
+    setAttemptStarted(user.role === 'student' && activeQuizId === id);
+  }, [activeQuizId, id, user.role]);
 
   function updateAnswer(questionId, answer) {
     setAnswers((current) => {
@@ -44,12 +49,11 @@ export default function Quiz() {
           } catch {
             window.sessionStorage.removeItem(`aralna_quiz_answers_${id}`);
           }
-          startQuizSession(id);
         }
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [id, startQuizSession, user.role]);
+  }, [id, user.role]);
 
   useEffect(() => {
     if (location.state?.quizNavigationBlocked) {
@@ -77,9 +81,11 @@ export default function Quiz() {
         answers: quiz.questions.map((question) => ({ questionId: question.id, answer: answers[question.id] ?? '' })),
       });
       setSubmission(result.attempt);
+      setAttempts((current) => [...current, result.attempt]);
       setAnswers({});
       window.sessionStorage.removeItem(`aralna_quiz_answers_${id}`);
       setRemainingAttempts(result.remainingAttempts);
+      setAttemptStarted(false);
       endQuizSession();
       const refreshed = await api.get(`/quizzes/${id}`);
       setQuiz(refreshed.quiz);
@@ -89,6 +95,17 @@ export default function Quiz() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function beginAttempt() {
+    const attemptNumber = attempts.length + 1;
+    if (!window.confirm(`Start attempt ${attemptNumber} of 5? Once you begin, navigation will be locked until you submit your answers.`)) return;
+    setError('');
+    setSubmission(null);
+    setAnswers({});
+    window.sessionStorage.removeItem(`aralna_quiz_answers_${id}`);
+    setAttemptStarted(true);
+    startQuizSession(id);
   }
 
   if (loading) return <p className="page-status">Loading quiz...</p>;
@@ -125,7 +142,7 @@ export default function Quiz() {
       )}
       {user.role !== 'student' ? (
         <section className="panel"><p className="muted">Admin preview: students can take this quiz from their study space.</p></section>
-      ) : remainingAttempts > 0 ? (
+      ) : remainingAttempts > 0 && attemptStarted ? (
         <form className="quiz-taking-form" onSubmit={submit}>
           {quiz.questions.map((question, index) => (
             <section className="panel quiz-student-question" key={question.id}>
@@ -163,6 +180,17 @@ export default function Quiz() {
             {submitting ? 'Submitting...' : 'Submit attempt'}
           </button>
         </form>
+      ) : remainingAttempts > 0 ? (
+        <section className="panel quiz-attempt-start">
+          <p className="muted">
+            {submission
+              ? `Your next attempt will be attempt ${attempts.length + 1} of 5. Confirm when you’re ready to begin.`
+              : `You’re about to begin attempt ${attempts.length + 1} of 5. Your answers will be locked in until you submit.`}
+          </p>
+          <button className="btn btn-primary quiz-submit" type="button" onClick={beginAttempt}>
+            Start attempt {attempts.length + 1}
+          </button>
+        </section>
       ) : (
         <section className="panel"><p className="muted">You have used all five attempts for this quiz.</p></section>
       )}

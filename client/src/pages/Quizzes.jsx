@@ -8,6 +8,7 @@ export default function Quizzes() {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [removingQuizId, setRemovingQuizId] = useState('');
 
   useEffect(() => {
     api.get('/quizzes')
@@ -15,6 +16,20 @@ export default function Quizzes() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  async function removeQuiz(quiz) {
+    if (!window.confirm(`Remove "${quiz.title}" from your quiz list? Your attempt history for this quiz will also be deleted. The quiz and other students' scores will not be affected.`)) return;
+    setError('');
+    setRemovingQuizId(quiz.id);
+    try {
+      await api.delete(`/quizzes/${quiz.id}`);
+      setQuizzes((current) => current.filter((item) => item.id !== quiz.id));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setRemovingQuizId('');
+    }
+  }
 
   return (
     <div className="quiz-student-page">
@@ -47,9 +62,21 @@ export default function Quizzes() {
                         : 'Not attempted yet · 5 attempts available'}
                   </p>
                 </div>
-                <Link className="btn btn-primary quiz-card-action" to={`/app/quizzes/${quiz.id}`}>
-                  {user.role !== 'student' ? 'Preview' : quiz.remainingAttempts > 0 ? 'Open quiz' : 'View scores'} <span aria-hidden="true">↗</span>
-                </Link>
+                <div className="quiz-student-actions">
+                  <Link className="btn btn-primary quiz-card-action" to={`/app/quizzes/${quiz.id}`}>
+                    {user.role !== 'student' ? 'Preview' : quiz.remainingAttempts > 0 ? 'Open quiz' : 'View scores'} <span aria-hidden="true">↗</span>
+                  </Link>
+                  {user.role === 'student' && attempts.length > 0 && (
+                    <button
+                      className="btn btn-ghost quiz-remove-action"
+                      type="button"
+                      disabled={removingQuizId === quiz.id}
+                      onClick={() => removeQuiz(quiz)}
+                    >
+                      {removingQuizId === quiz.id ? 'Removing...' : 'Remove'}
+                    </button>
+                  )}
+                </div>
               </li>
             );
           })}

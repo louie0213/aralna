@@ -90,6 +90,7 @@ POST   /api/reviewers/:id/quiz       create or open a practice quiz from that re
 GET    /api/quizzes                  list published quizzes (admins also see attempt counts)
 POST   /api/quizzes                  admin: publish a quiz to all active students
 POST   /api/quizzes/generate-from-file admin: generate quiz questions from an uploaded source
+DELETE /api/quizzes/:id              creator admin: delete a published quiz and all its attempts; student: hide it and delete own attempts
 GET    /api/quizzes/:id              get a quiz without its answer key
 GET    /api/quizzes/:id/results      admin: view student scores
 POST   /api/quizzes/:id/attempts     student: submit one of up to five attempts
@@ -114,6 +115,10 @@ per quiz, and every score is recorded. Admins can review all student attempts an
 published quiz list. The quiz API never returns the answer key to students. At the bottom of each
 ready reviewer, students can generate a reviewer-specific practice quiz; it is saved to their account
 so its five-attempt score history persists.
+
+Admins can delete only assigned quizzes they created; deleting one removes the quiz and all student
+attempts for it. Students can remove a quiz from their own list, which also clears only their own
+attempt history. The shared quiz and other students' records remain available.
 
 ## Security choices
 

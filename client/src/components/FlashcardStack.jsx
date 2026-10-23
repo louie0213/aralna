@@ -17,12 +17,23 @@ export default function FlashcardStack({ cards }) {
         <div className="stack-ghost stack-ghost-1" aria-hidden="true" />
         <button
           type="button"
-          className={flipped ? 'stack-card stack-card-flipped' : 'stack-card'}
+          className="stack-card"
           onClick={() => setFlipped((v) => !v)}
+          aria-pressed={flipped}
+          aria-label={flipped ? 'Show question' : 'Show answer'}
         >
-          <span className="flashcard-label">{flipped ? 'Answer' : 'Question'}</span>
-          <span className="flashcard-text">{flipped ? card.answer : card.question}</span>
-          <span className="flashcard-hint">Tap to flip</span>
+          <span className={flipped ? 'stack-card-inner stack-card-flipped' : 'stack-card-inner'}>
+            <span className="stack-card-face stack-card-front" aria-hidden={flipped}>
+              <span className="flashcard-label">Question</span>
+              <span className="flashcard-text">{card.question}</span>
+              <span className="flashcard-hint">Tap to flip</span>
+            </span>
+            <span className="stack-card-face stack-card-back" aria-hidden={!flipped}>
+              <span className="flashcard-label">Answer</span>
+              <span className="flashcard-text">{card.answer}</span>
+              <span className="flashcard-hint">Tap to flip back</span>
+            </span>
+          </span>
         </button>
       </div>
 

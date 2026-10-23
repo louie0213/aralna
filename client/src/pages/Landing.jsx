@@ -74,7 +74,7 @@ export default function Landing() {
         </section>
 
         <section className="landing-method" id="how-it-works">
-          <div className="method-heading"><p className="eyebrow">A SMALLER STUDY LOOP</p><h2>From notes to <em>know-how.</em></h2></div>
+            <div className="method-heading"><p className="eyebrow">A SMALLER STUDY LOOP</p><h2>From notes to <em>know-how.</em></h2></div>
           <div className="method-steps">
             <article><span className="step-number">01</span><h3>Bring your notes</h3><p>Upload the material you already use for class.</p></article>
             <article><span className="step-number">02</span><h3>Get the essentials</h3><p>Review a clear summary, key terms, and concepts.</p></article>

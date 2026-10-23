@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import { api } from '../api.js';
+import FlashcardStack from '../components/FlashcardStack.jsx';
 
 function getTopics(reviewer) {
   if (Array.isArray(reviewer.topics) && reviewer.topics.length) return reviewer.topics;
@@ -27,6 +28,34 @@ function getWorkedExampleSteps(workedExample) {
   return lines.map((line) => line.replace(stepPattern, '').trim()).filter(Boolean);
 }
 
+function ReviewerFilterDropdown({ label, value, options, onChange }) {
+  const selected = options.find((option) => option.value === value);
+  return (
+    <details className="reviewer-filter-dropdown">
+      <summary aria-label={`${label}: ${selected?.label || value}`}>
+        <span>{selected?.label || value}</span>
+        <span className="reviewer-filter-chevron" aria-hidden="true">⌄</span>
+      </summary>
+      <div className="reviewer-filter-options" role="group" aria-label={label}>
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            className={option.value === value ? 'selected' : ''}
+            aria-pressed={option.value === value}
+            onClick={(event) => {
+              onChange(option.value);
+              event.currentTarget.closest('details').open = false;
+            }}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </details>
+  );
+}
+
 export default function Reviewer() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -39,6 +68,7 @@ export default function Reviewer() {
   const [selectedYear, setSelectedYear] = useState('all');
   const [selectedTerm, setSelectedTerm] = useState('');
   const [downloading, setDownloading] = useState(false);
+  const [downloadFormat, setDownloadFormat] = useState('');
   const [downloadError, setDownloadError] = useState('');
   const [generatingQuiz, setGeneratingQuiz] = useState(false);
   const [quizError, setQuizError] = useState('');
@@ -92,6 +122,12 @@ export default function Reviewer() {
   const keyTerms = (reviewer.keyTerms || []).filter(
     (entry) => entry && typeof entry.term === 'string' && typeof entry.definition === 'string'
   );
+  const flashcards = keyTerms.length
+    ? keyTerms.map(({ term, definition }) => ({ question: term, answer: definition }))
+    : topics.map((topic) => ({
+        question: `What are the key ideas in ${topic.name}?`,
+        answer: topic.bulletPoints.join(' '),
+      }));
   const people = [...new Set((reviewer.people || []).filter((person) => typeof person === 'string' && person.trim()))];
   const availableViews = [
     ...(topics.length > 0 ? ['topics'] : []),
@@ -111,10 +147,85 @@ export default function Reviewer() {
     : timeline.filter((entry) => entry.year === selectedYear);
   const selectedKeyTerm = keyTerms.find((entry) => entry.term === selectedTerm);
 
-  async function downloadReviewer() {
+  async function downloadReviewer(format) {
     setDownloading(true);
+    setDownloadFormat(format);
     setDownloadError('');
     try {
+      const filename = (reviewer.documentName || 'reviewer')
+        .replace(/\.[^.]+$/, '')
+        .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '-')
+        .trim() || 'reviewer';
+
+      if (format === 'pdf') {
+        const { jsPDF } = await import('jspdf');
+        const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 18;
+        const contentWidth = pageWidth - margin * 2;
+        let y = margin;
+
+        function addText(text, { size = 10, bold = false, indent = 0, after = 3 } = {}) {
+          pdf.setFont('helvetica', bold ? 'bold' : 'normal');
+          pdf.setFontSize(size);
+          const lines = pdf.splitTextToSize(String(text), contentWidth - indent);
+          const lineHeight = size * 0.45;
+          for (const line of lines) {
+            if (y + lineHeight > pageHeight - margin) {
+              pdf.addPage();
+              y = margin;
+            }
+            pdf.text(line, margin + indent, y);
+            y += lineHeight;
+          }
+          y += after;
+        }
+
+        addText(reviewer.documentName, { size: 20, bold: true, after: 8 });
+        for (const topic of topics) {
+          addText(topic.name, { size: 15, bold: true, after: 4 });
+          for (const point of topic.bulletPoints) {
+            addText(`- ${point}`, { indent: 2, after: 2 });
+          }
+          if (topic.formulaExamples?.length) {
+            addText('Formula examples', { size: 12, bold: true, after: 3 });
+            for (const entry of topic.formulaExamples) {
+              addText(`Formula: ${entry.formula}`, { bold: true, after: 2 });
+              const steps = getWorkedExampleSteps(entry.workedExample);
+              if (steps.length) {
+                addText('Worked example:', { bold: true, after: 1 });
+                steps.forEach((step, index) => addText(`Step ${index + 1}: ${step}`, { indent: 2, after: 1 }));
+              } else {
+                addText(`Worked example: ${entry.workedExample}`, { after: 2 });
+              }
+            }
+          }
+          y += 3;
+        }
+
+        if (timeline.length) {
+          addText('Timeline', { size: 15, bold: true, after: 4 });
+          for (const entry of timeline) {
+            addText(entry.year, { size: 12, bold: true, after: 2 });
+            addText(entry.summary);
+          }
+        }
+
+        if (keyTerms.length) {
+          addText('Key terms', { size: 15, bold: true, after: 4 });
+          for (const entry of keyTerms) addText(`- ${entry.term}: ${entry.definition}`, { indent: 2 });
+        }
+
+        if (people.length) {
+          addText('People', { size: 15, bold: true, after: 4 });
+          for (const person of people) addText(`- ${person}`, { indent: 2, after: 1 });
+        }
+
+        pdf.save(`${filename}.pdf`);
+        return;
+      }
+
       const { Document: WordDocument, HeadingLevel, Packer, Paragraph, TextRun } = await import('docx');
       const paragraphs = [new Paragraph({ text: reviewer.documentName, heading: HeadingLevel.TITLE })];
 
@@ -169,10 +280,6 @@ export default function Reviewer() {
 
       const wordDocument = new WordDocument({ sections: [{ children: paragraphs }] });
       const blob = await Packer.toBlob(wordDocument);
-      const filename = (reviewer.documentName || 'reviewer')
-        .replace(/\.[^.]+$/, '')
-        .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '-')
-        .trim() || 'reviewer';
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -182,9 +289,10 @@ export default function Reviewer() {
       link.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (err) {
-      setDownloadError(err.message || 'Could not create the DOCX download.');
+      setDownloadError(err.message || `Could not create the ${format.toUpperCase()} download.`);
     } finally {
       setDownloading(false);
+      setDownloadFormat('');
     }
   }
 
@@ -192,44 +300,81 @@ export default function Reviewer() {
     <>
       <header className="reviewer-header">
         <h1>{reviewer.documentName}</h1>
-        <button className="btn btn-ghost reviewer-download" type="button" onClick={downloadReviewer} disabled={downloading}>
-          <span aria-hidden="true">↓</span> {downloading ? 'Preparing DOCX...' : 'Download DOCX'}
-        </button>
+        <details className="reviewer-download-menu">
+          <summary className="btn btn-ghost reviewer-download" aria-label="Choose download format">
+            <span aria-hidden="true">↓</span> {downloading ? `Preparing ${downloadFormat.toUpperCase()}...` : 'Download'} <span className="reviewer-filter-chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div className="reviewer-download-options">
+            <button type="button" onClick={(event) => {
+              event.currentTarget.closest('details').open = false;
+              downloadReviewer('docx');
+            }} disabled={downloading}>Download as DOCX</button>
+            <button type="button" onClick={(event) => {
+              event.currentTarget.closest('details').open = false;
+              downloadReviewer('pdf');
+            }} disabled={downloading}>Download as PDF</button>
+          </div>
+        </details>
       </header>
       {downloadError && <div className="alert" role="alert">{downloadError}</div>}
 
       {(topics.length > 0 || years.length > 0 || keyTerms.length > 0) && (
         <div className="toolbar reviewer-filter">
-          <label htmlFor="reviewer-view">Show</label>
-          <select id="reviewer-view" value={selectedView} onChange={(e) => setView(e.target.value)}>
-            {topics.length > 0 && <option value="topics">Topics</option>}
-            {people.length > 0 && <option value="people">Names</option>}
-            {years.length > 0 && <option value="years">Years</option>}
-            {keyTerms.length > 0 && <option value="terms">Terms</option>}
-          </select>
+          <span className="reviewer-filter-label">Show</span>
+          <ReviewerFilterDropdown
+            label="Reviewer view"
+            value={selectedView}
+            onChange={setView}
+            options={[
+              ...(topics.length > 0 ? [{ value: 'topics', label: 'Topics' }] : []),
+              ...(people.length > 0 ? [{ value: 'people', label: 'Names' }] : []),
+              ...(years.length > 0 ? [{ value: 'years', label: 'Years' }] : []),
+              ...(keyTerms.length > 0 ? [{ value: 'terms', label: 'Terms' }] : []),
+            ]}
+          />
           {selectedView === 'topics' && topics.length > 0 && (
-            <select aria-label="Choose a topic" value={selectedTopic} onChange={(e) => setSelectedTopic(e.target.value)}>
-              <option value="all">All topics</option>
-              {topics.map((topic, index) => <option key={`${topic.name}-${index}`} value={index}>{topic.name}</option>)}
-            </select>
+            <ReviewerFilterDropdown
+              label="Choose a topic"
+              value={selectedTopic}
+              onChange={setSelectedTopic}
+              options={[
+                { value: 'all', label: 'All topics' },
+                ...topics.map((topic, index) => ({ value: String(index), label: topic.name })),
+              ]}
+            />
           )}
           {selectedView === 'people' && people.length > 0 && (
-            <select aria-label="Choose a person" value={selectedPerson} onChange={(e) => setSelectedPerson(e.target.value)}>
-              <option value="all">All names</option>
-              {people.map((person) => <option key={person} value={person}>{person}</option>)}
-            </select>
+            <ReviewerFilterDropdown
+              label="Choose a person"
+              value={selectedPerson}
+              onChange={setSelectedPerson}
+              options={[
+                { value: 'all', label: 'All names' },
+                ...people.map((person) => ({ value: person, label: person })),
+              ]}
+            />
           )}
           {selectedView === 'years' && years.length > 0 && (
-            <select aria-label="Choose a year" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
-              <option value="all">All years</option>
-              {years.map((year) => <option key={year} value={year}>{year}</option>)}
-            </select>
+            <ReviewerFilterDropdown
+              label="Choose a year"
+              value={selectedYear}
+              onChange={setSelectedYear}
+              options={[
+                { value: 'all', label: 'All years' },
+                ...years.map((year) => ({ value: year, label: year })),
+              ]}
+            />
           )}
           {selectedView === 'terms' && keyTerms.length > 0 && (
-            <select aria-label="Choose a term" value={selectedTerm} onChange={(e) => setSelectedTerm(e.target.value)}>
-              <option value="">Choose a term</option>
-              {keyTerms.map((entry, index) => <option key={`${entry.term}-${index}`} value={entry.term}>{entry.term}</option>)}
-            </select>
+            <ReviewerFilterDropdown
+              label="Choose a term"
+              value={selectedTerm}
+              onChange={setSelectedTerm}
+              options={[
+                { value: '', label: 'Choose a term' },
+                ...keyTerms.map((entry) => ({ value: entry.term, label: entry.term })),
+              ]}
+            />
           )}
         </div>
       )}
@@ -283,6 +428,19 @@ export default function Reviewer() {
         )}
         {selectedView === 'topics' && topics.length === 0 && <p className="muted">No topic notes were generated for this document.</p>}
       </div>
+
+      {flashcards.length > 0 && (
+        <section className="reviewer-flashcards" aria-labelledby="reviewer-flashcards-title">
+          <div className="reviewer-flashcards-heading">
+            <div>
+              <p className="page-eyebrow">ACTIVE RECALL</p>
+              <h2 id="reviewer-flashcards-title">Flashcards</h2>
+            </div>
+            <p>Try to answer before flipping the card.</p>
+          </div>
+          <FlashcardStack cards={flashcards} />
+        </section>
+      )}
 
       {user.role === 'student' && (
         <>

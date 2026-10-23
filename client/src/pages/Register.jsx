@@ -8,7 +8,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function validate(f) {
   const e = {};
-  if (!f.fullName.trim()) e.fullName = 'Enter your full name.';
+  if (!f.fullName.trim()) e.fullName = 'Enter your name.';
   if (!EMAIL_RE.test(f.email)) e.email = 'Enter a valid email address.';
   if (f.password.length < 8 || !/[A-Za-z]/.test(f.password) || !/\d/.test(f.password)) {
     e.password = 'Use at least 8 characters with a letter and a number.';
@@ -49,11 +49,11 @@ export default function Register() {
   return (
     <AuthLayout wide>
       <h1>Create your student account</h1>
-      <p className="auth-sub">Admin accounts are created by an existing administrator.</p>
+      <p className="auth-sub">Enter your details below to create your student account.</p>
       {error && <div className="alert" role="alert">{error}</div>}
       <form onSubmit={onSubmit} noValidate>
         <div className="grid-2">
-          <Field label="Full name" name="fullName" autoComplete="name" value={form.fullName} onChange={onChange} error={errors.fullName} />
+          <Field label="Name" name="fullName" autoComplete="name" value={form.fullName} onChange={onChange} error={errors.fullName} />
           <Field label="Program (optional)" name="program" placeholder="BSIT" value={form.program} onChange={onChange} />
         </div>
         <Field label="Email" name="email" type="email" autoComplete="email" value={form.email} onChange={onChange} error={errors.email} />

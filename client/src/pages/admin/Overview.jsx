@@ -66,7 +66,7 @@ export default function Overview() {
         <Stat label="Online users" value={users.onlineUsers} note="Live presence · refreshes every 30 seconds" />
         <Stat label="Active students" value={users.activeStudents} note="Used the app in the last 7 days" />
         <Stat label="Registered students" value={users.students} note={`${users.admins} admin${users.admins === 1 ? '' : 's'}`} />
-        <Stat label="Disabled accounts" value={users.disabled} />
+        <Stat label="Suspended accounts" value={users.disabled} />
       </div>
 
       <section className="panel topics-panel">

@@ -65,6 +65,14 @@ router.post('/register', limiter, async (req, res, next) => {
       return res.status(400).json({ message: 'Fix the highlighted fields.', errors });
     }
 
+    const existingName = await User.exists({ fullName: body.fullName }).collation({ locale: 'en', strength: 2 });
+    if (existingName) {
+      return res.status(409).json({
+        message: 'An account with this name already exists.',
+        errors: { fullName: 'This name is already registered.' },
+      });
+    }
+
     const passwordHash = await bcrypt.hash(body.password, 12);
     // Role is fixed to "student". Public sign-up can never create an admin.
     const user = await User.create({

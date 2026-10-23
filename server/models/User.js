@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     lastActiveAt: { type: Date },
     lastSeenAt: { type: Date },
+    hiddenQuizIds: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Quiz' }], default: [], select: false },
   },
   { timestamps: true }
 );
@@ -31,6 +32,7 @@ userSchema.set('toJSON', {
     delete ret.passwordResetRequestedAt;
     delete ret.passwordResetAttempts;
     delete ret.passwordChangedAt;
+    delete ret.hiddenQuizIds;
     delete ret.__v;
     return ret;
   },

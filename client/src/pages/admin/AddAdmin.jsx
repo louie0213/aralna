@@ -7,7 +7,7 @@ const EMPTY = { fullName: '', email: '', password: '', confirm: '' };
 
 function validate(f) {
   const e = {};
-  if (!f.fullName.trim()) e.fullName = 'Enter the full name.';
+  if (!f.fullName.trim()) e.fullName = 'Enter your name.';
   if (!EMAIL_RE.test(f.email)) e.email = 'Enter a valid email address.';
   if (f.password.length < 8 || !/[A-Za-z]/.test(f.password) || !/\d/.test(f.password)) {
     e.password = 'Use at least 8 characters with a letter and a number.';
@@ -47,14 +47,24 @@ export default function AddAdmin() {
   }
 
   return (
-    <>
-      <h1>Add admin</h1>
+    <div className="admin-form-page">
+      <header className="admin-form-heading">
+        <p className="page-eyebrow">TEAM ACCESS / ADMINISTRATION</p>
+        <h1>Add an administrator</h1>
+        <p className="page-description">Create a trusted account for someone who helps manage AralNa.</p>
+      </header>
       <section className="panel form-panel">
-        <p className="muted">The new admin can monitor the dashboard and user directory, but cannot change account access or create admins.</p>
+        <div className="admin-form-card-heading">
+          <span className="admin-form-icon" aria-hidden="true">＋</span>
+          <div>
+            <h2>Administrator details</h2>
+            <p className="muted">This account can monitor the dashboard and user directory, but cannot manage account access or create admins.</p>
+          </div>
+        </div>
         {error && <div className="alert" role="alert">{error}</div>}
         {done && <div className="notice" role="status">{done}</div>}
         <form onSubmit={onSubmit} noValidate>
-          <Field label="Full name" name="fullName" value={form.fullName} onChange={onChange} error={errors.fullName} />
+          <Field label="Name" name="fullName" value={form.fullName} onChange={onChange} error={errors.fullName} />
           <Field label="Email" name="email" type="email" value={form.email} onChange={onChange} error={errors.email} />
           <div className="grid-2">
             <Field label="Password" name="password" type="password" autoComplete="new-password" value={form.password} onChange={onChange} error={errors.password} />
@@ -63,6 +73,6 @@ export default function AddAdmin() {
           <button className="btn btn-primary" disabled={busy}>{busy ? 'Creating admin...' : 'Create admin'}</button>
         </form>
       </section>
-    </>
+    </div>
   );
 }

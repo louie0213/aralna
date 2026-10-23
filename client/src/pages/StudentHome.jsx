@@ -14,7 +14,10 @@ export default function StudentHome() {
           <h1>Welcome back, {firstName}</h1>
           <p className="page-description">Your notes are the starting point. Pick up where your next study session begins.</p>
         </div>
-        <span className="account-chip"><span aria-hidden="true" /> {accountLabel}</span>
+        <aside className="account-status" aria-label={`Account status: ${accountLabel}`}>
+          <span className="account-status-label">ACCOUNT STATUS</span>
+          <span className="account-status-value"><span aria-hidden="true" />{accountLabel}</span>
+        </aside>
       </header>
 
       <section className="student-start">

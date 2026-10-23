@@ -4,6 +4,9 @@ import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Document from '../models/Document.js';
 import Generation from '../models/Generation.js';
+import Quiz from '../models/Quiz.js';
+import QuizAttempt from '../models/QuizAttempt.js';
+import Reviewer from '../models/Reviewer.js';
 import { requireAuth, requireRole, requireSuperAdmin } from '../middleware/auth.js';
 import { str, validateAccount } from '../utils/validate.js';
 
@@ -95,16 +98,51 @@ router.patch('/users/:id/active', requireSuperAdmin, async (req, res, next) => {
       return res.status(400).json({ message: 'isActive must be true or false.' });
     }
     if (id === req.user.id) {
-      return res.status(400).json({ message: 'You cannot disable your own account.' });
+      return res.status(400).json({ message: 'You cannot suspend your own account.' });
     }
     const user = await User.findById(id);
     if (!user) return res.status(404).json({ message: 'User not found.' });
     if (user.isSuperAdmin) {
-      return res.status(403).json({ message: 'The super admin account cannot be disabled.' });
+      return res.status(403).json({ message: 'The super admin account cannot be suspended.' });
     }
     user.isActive = req.body.isActive;
     await user.save();
     res.json({ user });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete('/users/:id', requireSuperAdmin, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) return res.status(400).json({ message: 'Invalid user ID.' });
+    if (id === req.user.id) {
+      return res.status(400).json({ message: 'You cannot delete your own account.' });
+    }
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+    if (user.isSuperAdmin) {
+      return res.status(403).json({ message: 'The super admin account cannot be deleted.' });
+    }
+
+    user.isActive = false;
+    await user.save();
+    const reviewerIds = await Reviewer.find({ user: id }).distinct('_id');
+    const quizIds = await Quiz.find({
+      $or: [{ owner: id }, { createdBy: id }, { sourceReviewer: { $in: reviewerIds } }],
+    }).distinct('_id');
+
+    await Promise.all([
+      QuizAttempt.deleteMany({ $or: [{ user: id }, { quiz: { $in: quizIds } }] }),
+      Quiz.deleteMany({ _id: { $in: quizIds } }),
+      Reviewer.deleteMany({ user: id }),
+      Document.deleteMany({ user: id }),
+      Generation.deleteMany({ user: id }),
+    ]);
+    await Quiz.updateMany({ assignedTo: id }, { $pull: { assignedTo: id } });
+    await user.deleteOne();
+    res.json({ message: 'Account and its learning data deleted.' });
   } catch (err) {
     next(err);
   }
@@ -122,8 +160,15 @@ router.post('/admins', requireSuperAdmin, async (req, res, next) => {
     if (Object.keys(errors).length) {
       return res.status(400).json({ message: 'Fix the highlighted fields.', errors });
     }
+    const existingName = await User.exists({ fullName: body.fullName }).collation({ locale: 'en', strength: 2 });
+    if (existingName) {
+      return res.status(409).json({
+        message: 'An account with this name already exists.',
+        errors: { fullName: 'This name is already registered.' },
+      });
+    }
     const passwordHash = await bcrypt.hash(body.password, 12);
-    const user = await User.create({ fullName: body.fullName, email: body.email, passwordHash, role: 'admin' });
+      const user = await User.create({ fullName: body.fullName, email: body.email, passwordHash, role: 'admin' });
     res.status(201).json({ user });
   } catch (err) {
     if (err.code === 11000) {

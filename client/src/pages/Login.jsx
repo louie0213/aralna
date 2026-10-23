@@ -83,7 +83,7 @@ export default function Login() {
       {mode === 'login' && (
         <>
           <h1>Log in</h1>
-          <p className="auth-sub">Students and admins use the same form.</p>
+          <p className="auth-sub">Enter your email and password to continue to your account.</p>
           {error && <div className="alert" role="alert">{error}</div>}
           {notice && <div className="auth-notice" role="status">{notice}</div>}
           <form onSubmit={onSubmit} noValidate>

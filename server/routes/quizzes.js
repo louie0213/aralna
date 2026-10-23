@@ -115,9 +115,9 @@ function normalizeAnswer(value) {
 
 router.get('/', async (req, res, next) => {
   try {
-      if (req.user.role === 'admin') {
+    if (req.user.role === 'admin') {
       const [quizzes, assignedStudents, attemptCounts] = await Promise.all([
-        Quiz.find({ audience: 'assigned' }).select('title description questions createdBy createdAt assignmentMode assignedTo').populate('createdBy', 'fullName').sort({ createdAt: -1 }),
+        Quiz.find({ audience: { $in: ['assigned', null] } }).select('title description questions createdBy createdAt assignmentMode assignedTo').populate('createdBy', 'fullName').sort({ createdAt: -1 }),
         User.countDocuments({ role: 'student', isActive: true }),
         QuizAttempt.aggregate([{ $group: { _id: '$quiz', count: { $sum: 1 } } }]),
       ]);
@@ -129,6 +129,7 @@ router.get('/', async (req, res, next) => {
           description: quiz.description,
           questionCount: quiz.questions.length,
           createdBy: quiz.createdBy?.fullName || '',
+          canDelete: String(quiz.createdBy?._id || '') === req.user.id,
           createdAt: quiz.createdAt,
           assignedStudents: quiz.assignmentMode === 'selected' ? quiz.assignedTo.length : assignedStudents,
           attemptsCount: countByQuiz.get(String(quiz._id)) || 0,
@@ -136,8 +137,10 @@ router.get('/', async (req, res, next) => {
       });
     }
 
+    const account = await User.findById(req.user.id).select('+hiddenQuizIds');
+    const hiddenQuizIds = account?.hiddenQuizIds || [];
     const [quizzes, attempts] = await Promise.all([
-      Quiz.find(studentQuizFilter(req.user.id))
+      Quiz.find({ ...studentQuizFilter(req.user.id), _id: { $nin: hiddenQuizIds } })
         .select('title description questions createdAt audience sourceReviewer assignmentMode assignedTo')
         .sort({ createdAt: -1 }),
       QuizAttempt.find({ user: req.user.id })
@@ -173,6 +176,49 @@ router.get('/', async (req, res, next) => {
         };
       }),
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete('/:id', async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ message: 'Invalid quiz ID.' });
+
+    if (req.user.role === 'admin') {
+      const quiz = await Quiz.findOneAndDelete({
+        _id: req.params.id,
+        createdBy: req.user.id,
+        $or: [{ audience: 'assigned' }, { audience: { $exists: false } }],
+      });
+      if (!quiz) return res.status(404).json({ message: 'Quiz not found or you did not create it.' });
+      await QuizAttempt.deleteMany({ quiz: quiz.id });
+      return res.json({ message: 'Quiz and its attempts deleted.' });
+    }
+
+    if (req.user.role === 'student') {
+      const account = await User.findById(req.user.id).select('+hiddenQuizIds');
+      if (!account) return res.status(404).json({ message: 'Account not found.' });
+      if (account.hiddenQuizIds.some((quizId) => String(quizId) === req.params.id)) {
+        return res.status(404).json({ message: 'Quiz not found.' });
+      }
+
+      const quiz = await Quiz.findOne({
+        _id: req.params.id,
+        ...studentQuizFilter(req.user.id),
+      }).select('_id');
+      if (!quiz) return res.status(404).json({ message: 'Quiz not found.' });
+      const hasAttempts = await QuizAttempt.exists({ quiz: quiz._id, user: req.user.id });
+      if (!hasAttempts) {
+        return res.status(400).json({ message: 'Submit an attempt before removing this quiz from your list.' });
+      }
+
+      await User.updateOne({ _id: req.user.id }, { $addToSet: { hiddenQuizIds: quiz._id } });
+      await QuizAttempt.deleteMany({ quiz: quiz._id, user: req.user.id });
+      return res.json({ message: 'Quiz removed from your list and your attempt history.' });
+    }
+
+    return res.status(403).json({ message: 'You do not have access to delete this quiz.' });
   } catch (err) {
     next(err);
   }
@@ -290,9 +336,15 @@ router.get('/:id/results', requireRole('admin'), async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ message: 'Invalid quiz ID.' });
+    const hiddenQuizIds = req.user.role === 'student'
+      ? (await User.findById(req.user.id).select('+hiddenQuizIds'))?.hiddenQuizIds || []
+      : [];
     const quizFilter = req.user.role === 'admin'
       ? { _id: req.params.id, $or: [{ audience: 'assigned' }, { audience: { $exists: false } }] }
-      : { _id: req.params.id, ...studentQuizFilter(req.user.id) };
+      : {
+        ...studentQuizFilter(req.user.id),
+        _id: { $eq: req.params.id, $nin: hiddenQuizIds },
+      };
     const quiz = await Quiz.findOne(quizFilter).select('title description questions createdAt');
     if (!quiz) return res.status(404).json({ message: 'Quiz not found.' });
     const attempts = await QuizAttempt.find({ quiz: quiz.id, user: req.user.id })
@@ -317,7 +369,11 @@ router.get('/:id', async (req, res, next) => {
 router.post('/:id/attempts', requireRole('student'), async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ message: 'Invalid quiz ID.' });
-    const quiz = await Quiz.findOne({ _id: req.params.id, ...studentQuizFilter(req.user.id) }).select('+questions.answer');
+    const account = await User.findById(req.user.id).select('+hiddenQuizIds');
+    const quiz = await Quiz.findOne({
+      ...studentQuizFilter(req.user.id),
+      _id: { $eq: req.params.id, $nin: account?.hiddenQuizIds || [] },
+    }).select('+questions.answer');
     if (!quiz) return res.status(404).json({ message: 'Quiz not found.' });
     if (!Array.isArray(req.body.answers) || req.body.answers.length !== quiz.questions.length) {
       return res.status(400).json({ message: 'Answer every question before submitting.' });
