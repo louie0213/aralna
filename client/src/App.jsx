@@ -17,6 +17,7 @@ import Quizzes from './pages/Quizzes.jsx';
 import Quiz from './pages/Quiz.jsx';
 import Landing from './pages/Landing.jsx';
 import RouteTransition from './components/RouteTransition.jsx';
+import { Analytics } from '@vercel/analytics/react';
 
 const homeFor = (user) => (user.role === 'admin' ? '/admin' : '/app');
 
@@ -81,6 +82,7 @@ export default function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <Analytics />
     </QuizFocusGuard>
   );
 }
