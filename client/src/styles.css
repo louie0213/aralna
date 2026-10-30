@@ -553,9 +553,12 @@ html[data-theme='dark'] .reviewer-library-status.is-ready { color: #91ddb0; }
 .landing-nav { min-height: 82px; border-bottom: 1px solid var(--line); }
 .landing-brand { display: inline-flex; align-items: center; gap: 9px; color: var(--text); font-family: var(--font-head); font-size: 1.25rem; text-decoration: none; }
 .brand-mark { display: block; flex: 0 0 auto; width: 30px; height: 30px; }
-.logo-mark__background { fill: var(--ink); }
-.logo-mark__book { fill: none; stroke: var(--paper); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.logo-mark__accent { fill: #bdbdbd; }
+.logo-mark__background { fill: #f5f1e7; stroke: #d7d1c2; stroke-width: 0.7; }
+.logo-mark__book { fill: #152341; }
+.logo-mark__accent { fill: #eda92d; }
+html[data-theme='dark'] .logo-mark__background { fill: #152341; stroke: none; }
+html[data-theme='dark'] .logo-mark__book { fill: #f5f1e7; }
+html[data-theme='dark'] .logo-mark__accent { fill: #f4ba4e; }
 .landing-links, .landing-actions { display: flex; align-items: center; gap: 24px; }
 .landing-links a, .landing-login { color: var(--muted); font-size: 0.92rem; text-decoration: none; }
 .landing-links a:hover, .landing-login:hover { color: var(--text); }

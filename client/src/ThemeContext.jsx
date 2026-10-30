@@ -13,6 +13,8 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     window.localStorage.setItem('aralna-theme', theme);
+    const favicon = document.querySelector('link[rel="icon"]');
+    if (favicon) favicon.href = theme === 'dark' ? '/aralna-mark-dark.svg' : '/aralna-mark.svg';
   }, [theme]);
 
   const value = { theme, toggleTheme: () => setTheme((current) => current === 'dark' ? 'light' : 'dark') };
