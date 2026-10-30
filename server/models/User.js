@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema(
     fullName: { type: String, required: true, trim: true, maxlength: 100 },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     program: { type: String, trim: true, maxlength: 100 },
+    profilePicture: { type: String, select: false, maxlength: 400_000 },
     passwordHash: { type: String, required: true, select: false },
     passwordResetCodeHash: { type: String, select: false },
     passwordResetExpiresAt: { type: Date, select: false },

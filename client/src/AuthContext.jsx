@@ -96,6 +96,16 @@ export function AuthProvider({ children }) {
     return data.user;
   }
 
+  async function updateProfilePicture(file) {
+    const data = await api.upload('/auth/profile-picture', file);
+    setUser((currentUser) => currentUser ? { ...currentUser, profilePicture: data.profilePicture } : currentUser);
+  }
+
+  async function removeProfilePicture() {
+    const data = await api.delete('/auth/profile-picture');
+    setUser((currentUser) => currentUser ? { ...currentUser, profilePicture: data.profilePicture } : currentUser);
+  }
+
   async function logout() {
     await api.post('/auth/logout');
     endQuizSession();
@@ -103,7 +113,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, activeQuizId, startQuizSession, endQuizSession }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfilePicture, removeProfilePicture, activeQuizId, startQuizSession, endQuizSession }}>
       {children}
     </AuthContext.Provider>
   );
