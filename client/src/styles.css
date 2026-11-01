@@ -27,6 +27,10 @@
   --logo-book: #ffffff;
   --logo-spark: #ffdc48;
   --logo-pink: #ff438f;
+  --brand-token-background: #ff438f;
+  --brand-token-ink: #1a102e;
+  --brand-token-outline: #1a102e;
+  --brand-token-shadow: #1a102e;
   --font-head: 'Bricolage Grotesque', system-ui, sans-serif;
   --font-body: 'Nunito Sans', system-ui, sans-serif;
 }
@@ -57,6 +61,10 @@ html[data-theme='dark'] {
   --success-border: #888888;
   --logo-outline: #ffffff;
   --logo-shadow: #ff438f;
+  --brand-token-background: #ffdc48;
+  --brand-token-ink: #1a102e;
+  --brand-token-outline: #6b36f5;
+  --brand-token-shadow: #6b36f5;
 }
 
 * { box-sizing: border-box; }
@@ -537,6 +545,19 @@ html[data-theme='dark'] .reviewer-library-status.is-ready { color: #91ddb0; }
 .logo-mark__accent { fill: var(--logo-spark); stroke: var(--logo-ink); stroke-width: 2.6; stroke-linejoin: round; }
 .logo-mark__sparkle-dot { fill: var(--logo-pink); stroke: var(--logo-ink); stroke-width: 2.6; }
 .logo-mark__eye { fill: var(--logo-ink); }
+.brand-wordmark { display: inline-flex; align-items: center; gap: 0.04em; white-space: nowrap; }
+.brand-wordmark__token {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.015em 0.16em 0.04em;
+  color: var(--brand-token-ink);
+  background: var(--brand-token-background);
+  border: 0.075em solid var(--brand-token-outline);
+  border-radius: 0.22em;
+  box-shadow: 0.055em 0.055em 0 var(--brand-token-shadow);
+  line-height: 1.08;
+  transform: rotate(-4deg);
+}
 .landing-links, .landing-actions { display: flex; align-items: center; gap: 24px; }
 .landing-links a, .landing-login { color: var(--muted); font-size: 0.92rem; text-decoration: none; }
 .landing-links a:hover, .landing-login:hover { color: var(--text); }

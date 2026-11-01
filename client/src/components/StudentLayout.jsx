@@ -4,6 +4,7 @@ import { useAuth } from '../AuthContext.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import { Link } from 'react-router-dom';
 import BrandMark from './BrandMark.jsx';
+import BrandWordmark from './BrandWordmark.jsx';
 import ShellNavLink, { shellNavIcons } from './ShellNavLink.jsx';
 import PageBack from './PageBack.jsx';
 import ProfileAvatar from './ProfileAvatar.jsx';
@@ -18,13 +19,13 @@ export default function StudentLayout() {
         {activeQuizId ? (
           <span className="shell-brand" aria-label="AralNa">
             <BrandMark className="shell-brand-mark" />
-            <span className="shell-brand-name">AralNa</span>
+            <BrandWordmark className="shell-brand-name" />
             <span className="shell-role">Quiz in progress</span>
           </span>
         ) : (
           <Link className="shell-brand" to="/">
             <BrandMark className="shell-brand-mark" />
-            <span className="shell-brand-name">AralNa</span>
+            <BrandWordmark className="shell-brand-name" />
             <span className="shell-role">Student</span>
           </Link>
         )}

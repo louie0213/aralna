@@ -3,6 +3,7 @@ import { useAuth } from '../AuthContext.jsx';
 import { useTheme } from '../ThemeContext.jsx';
 import ThemeToggle from '../components/ThemeToggle.jsx';
 import BrandMark from '../components/BrandMark.jsx';
+import BrandWordmark from '../components/BrandWordmark.jsx';
 import Reveal from '../components/Reveal.jsx';
 
 const homeFor = (user) => user.role === 'admin' ? '/admin' : '/app';
@@ -16,7 +17,7 @@ export default function Landing() {
     <div className="landing" data-theme={theme}>
       <header className="landing-nav" data-motion-ambient>
         <Reveal as={Link} className="landing-brand" to="/" aria-label="AralNa home">
-          <BrandMark className="brand-mark" /> AralNa
+          <BrandMark className="brand-mark" /><BrandWordmark />
         </Reveal>
         <Reveal as="nav" className="landing-links" aria-label="Main navigation" delay="80ms">
           <a href="#how-it-works">How it works</a>
@@ -88,7 +89,7 @@ export default function Landing() {
           <div className="tools-row" data-reveal-group><Reveal as="h2">Study materials that work together.</Reveal><Reveal as="p">Keep your uploads, generated reviewers, and progress together in one calm workspace.</Reveal><Reveal as={Link} to={dashboardPath}>Explore your workspace <span aria-hidden="true">↗</span></Reveal></div>
         </Reveal>
       </main>
-      <footer className="landing-footer"><Reveal as={Link} className="landing-brand" to="/"><BrandMark className="brand-mark" /> AralNa</Reveal><Reveal as="span" delay="60ms">Make room for understanding.</Reveal><Reveal as={Link} to={user ? dashboardPath : '/login'} delay="110ms">{user ? 'Dashboard' : 'Log in'} <span aria-hidden="true">↗</span></Reveal></footer>
+      <footer className="landing-footer"><Reveal as={Link} className="landing-brand" to="/"><BrandMark className="brand-mark" /><BrandWordmark /></Reveal><Reveal as="span" delay="60ms">Make room for understanding.</Reveal><Reveal as={Link} to={user ? dashboardPath : '/login'} delay="110ms">{user ? 'Dashboard' : 'Log in'} <span aria-hidden="true">↗</span></Reveal></footer>
     </div>
   );
 }

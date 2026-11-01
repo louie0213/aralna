@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle.jsx';
 import BrandMark from './BrandMark.jsx';
+import BrandWordmark from './BrandWordmark.jsx';
 
 export default function AuthLayout({ children, wide = false }) {
   return (
@@ -9,7 +10,7 @@ export default function AuthLayout({ children, wide = false }) {
         <div className="auth-side-content">
           <Link className="auth-brand" to="/" aria-label="AralNa home">
             <BrandMark className="brand-mark" />
-            <span>AralNa</span>
+            <BrandWordmark />
           </Link>
           <div className="auth-story">
             <p className="auth-story-label">A BETTER WAY TO STUDY</p>

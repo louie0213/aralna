@@ -4,6 +4,7 @@ import { useAuth } from '../AuthContext.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import { Link } from 'react-router-dom';
 import BrandMark from './BrandMark.jsx';
+import BrandWordmark from './BrandWordmark.jsx';
 import ShellNavLink from './ShellNavLink.jsx';
 import PageBack from './PageBack.jsx';
 import ProfileAvatar from './ProfileAvatar.jsx';
@@ -17,7 +18,7 @@ export default function AdminLayout() {
       <header className="shell-bar">
         <Link className="shell-brand" to="/">
           <BrandMark className="shell-brand-mark" />
-          <span className="shell-brand-name">AralNa</span>
+          <BrandWordmark className="shell-brand-name" />
           <span className="shell-role">{user.isSuperAdmin ? 'Super admin' : 'Admin'}</span>
         </Link>
         <button
