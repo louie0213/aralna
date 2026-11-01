@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import { api } from '../api.js';
+import Reveal from '../components/Reveal.jsx';
 
 const fmtDate = (date) => new Date(date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -115,14 +116,14 @@ export default function Quiz() {
   return (
     <div className="quiz-taking-page">
       {activeQuizId !== id && <Link className="text-action quiz-back-link" to="/app/quizzes">← All quizzes</Link>}
-      <header className="page-heading">
+      <Reveal as="header" className="page-heading">
         <div>
           <p className="page-eyebrow">ASSESSMENT · {quiz.questions.length} QUESTIONS</p>
           <h1>{quiz.title}</h1>
           {quiz.description && <p className="page-description">{quiz.description}</p>}
         </div>
         <span className="section-meta">{remainingAttempts} of 5 attempts left</span>
-      </header>
+      </Reveal>
       {activeQuizId === id && (
         <div className="quiz-lock-notice" role="status">
           Quiz in progress. Submit your answers before leaving this page; navigating elsewhere is locked.
@@ -143,9 +144,9 @@ export default function Quiz() {
       {user.role !== 'student' ? (
         <section className="panel"><p className="muted">Admin preview: students can take this quiz from their study space.</p></section>
       ) : remainingAttempts > 0 && attemptStarted ? (
-        <form className="quiz-taking-form" onSubmit={submit}>
+        <form className="quiz-taking-form" onSubmit={submit} data-reveal-group>
           {quiz.questions.map((question, index) => (
-            <section className="panel quiz-student-question" key={question.id}>
+            <Reveal as="section" className="panel quiz-student-question" key={question.id}>
               <p className="page-eyebrow">QUESTION {index + 1} · {question.type.replace('-', ' ').toUpperCase()}</p>
               <h2>{question.prompt}</h2>
               {question.type === 'multiple-choice' && (
@@ -174,7 +175,7 @@ export default function Quiz() {
                   ))}
                 </div>
               )}
-            </section>
+            </Reveal>
           ))}
           <button className="btn btn-primary quiz-submit" type="submit" disabled={submitting}>
             {submitting ? 'Submitting...' : 'Submit attempt'}
@@ -195,7 +196,7 @@ export default function Quiz() {
         <section className="panel"><p className="muted">You have used all five attempts for this quiz.</p></section>
       )}
 
-      <section className="quiz-history">
+      <Reveal as="section" className="quiz-history">
         <div className="section-heading"><div><p className="page-eyebrow">YOUR RECORD</p><h2>Attempt history</h2></div></div>
         {attempts.length === 0 ? <p className="muted">No attempts submitted yet.</p> : (
           <ol className="quiz-history-list">
@@ -208,7 +209,7 @@ export default function Quiz() {
             ))}
           </ol>
         )}
-      </section>
+      </Reveal>
     </div>
   );
 }

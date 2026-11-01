@@ -1,11 +1,17 @@
-async function request(path, { method = 'GET', body } = {}) {
+async function request(path, { method = 'GET', body, signal } = {}) {
   const res = await fetch(`/api${path}`, {
     method,
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
+    signal,
   });
-  const data = await res.json().catch(() => ({}));
+  let data = {};
+  try {
+    data = await res.json();
+  } catch (err) {
+    if (err.name === 'AbortError') throw err;
+  }
   if (!res.ok) {
     const err = new Error(data.message || 'Request failed. Try again.');
     err.status = res.status;
@@ -16,8 +22,8 @@ async function request(path, { method = 'GET', body } = {}) {
 }
 
 export const api = {
-  get: (path) => request(path),
-  post: (path, body) => request(path, { method: 'POST', body }),
+  get: (path, options) => request(path, options),
+  post: (path, body, options = {}) => request(path, { ...options, method: 'POST', body }),
   patch: (path, body) => request(path, { method: 'PATCH', body }),
   delete: (path) => request(path, { method: 'DELETE' }),
   // Uses XHR instead of fetch so upload progress can be reported.

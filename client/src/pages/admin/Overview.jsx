@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../api.js';
+import Reveal from '../../components/Reveal.jsx';
 
 function Stat({ label, value, note }) {
   return (
-    <article className="metric-card">
+    <Reveal as="article" className="metric-card">
       <div className="metric-label">{label}</div>
       <div className="metric-value">{value}</div>
       {note && <p className="metric-note">{note}</p>}
-    </article>
+    </Reveal>
   );
 }
 
@@ -50,18 +51,18 @@ export default function Overview() {
 
   return (
     <div className="admin-dashboard">
-      <header className="page-heading">
+      <Reveal as="header" className="page-heading">
         <div>
           <p className="page-eyebrow">ADMIN WORKSPACE</p>
           <h1>Overview</h1>
           <p className="page-description">A clear view of account activity and what students are studying.</p>
         </div>
         <Link className="btn btn-ghost page-heading-action" to="/admin/users">Manage users <span aria-hidden="true">↗</span></Link>
-      </header>
+      </Reveal>
 
       {error && <div className="alert" role="alert">{error}</div>}
 
-      <div className="metrics-grid">
+      <div className="metrics-grid" data-reveal-group>
         <Stat label="Quizzes generated" value={generations.quizzes} note={`${generations.quizzesLast7Days} in the last 7 days`} />
         <Stat label="Online users" value={users.onlineUsers} note="Live presence · refreshes every 30 seconds" />
         <Stat label="Active students" value={users.activeStudents} note="Used the app in the last 7 days" />
@@ -69,7 +70,7 @@ export default function Overview() {
         <Stat label="Suspended accounts" value={users.disabled} />
       </div>
 
-      <section className="panel topics-panel">
+      <Reveal as="section" className="panel topics-panel">
         <div className="section-heading">
           <div>
             <p className="page-eyebrow">STUDY ACTIVITY</p>
@@ -95,7 +96,7 @@ export default function Overview() {
           </ol>
         )}
         <p className="topic-footnote">Counts quizzes, flashcards, and summaries.</p>
-      </section>
+      </Reveal>
     </div>
   );
 }

@@ -28,6 +28,7 @@ export default function ProfileAvatar({ user }) {
   const dragRef = useRef(null);
   const { updateProfilePicture, removeProfilePicture } = useAuth();
   const [open, setOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [imageSize, setImageSize] = useState(null);
   const [cropSize, setCropSize] = useState(CROP_SIZE);
@@ -57,7 +58,7 @@ export default function ProfileAvatar({ user }) {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     const onKeyDown = (event) => {
-      if (event.key === 'Escape' && !uploading) setOpen(false);
+      if (event.key === 'Escape' && !uploading) setClosing(true);
       if (event.key === 'Tab') {
         const focusable = dialogRef.current?.querySelectorAll('button:not(:disabled), input:not(:disabled)');
         if (!focusable?.length) return;
@@ -81,8 +82,13 @@ export default function ProfileAvatar({ user }) {
   }, [open, uploading]);
 
   function closeModal() {
-    if (uploading) return;
+    if (uploading || closing) return;
+    setClosing(true);
+  }
+
+  function finishClose() {
     setOpen(false);
+    setClosing(false);
     setImageUrl('');
     setImageSize(null);
     setZoom(1);
@@ -170,9 +176,7 @@ export default function ProfileAvatar({ user }) {
       const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9));
       if (!blob) throw new Error('Your browser could not prepare this picture. Try another image.');
       await updateProfilePicture(new File([blob], 'profile-picture.jpg', { type: 'image/jpeg' }));
-      setOpen(false);
-      setImageUrl('');
-      setImageSize(null);
+      setClosing(true);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -185,9 +189,7 @@ export default function ProfileAvatar({ user }) {
     setUploading(true);
     try {
       await removeProfilePicture();
-      setOpen(false);
-      setImageUrl('');
-      setImageSize(null);
+      setClosing(true);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -207,16 +209,20 @@ export default function ProfileAvatar({ user }) {
         disabled={uploading}
         onClick={() => {
           setError('');
+          setClosing(false);
           setOpen(true);
         }}
       >
         {user.profilePicture ? <img src={user.profilePicture} alt="" /> : initials}
-        {uploading && <span className="profile-avatar-loading" aria-hidden="true" />}
+        {uploading && <span className="profile-avatar-loading" data-motion-ambient aria-hidden="true" />}
       </button>
       {error && !open && <span className="profile-avatar-error" role="alert">{error}</span>}
       {open && createPortal(
         <div
-          className="profile-photo-backdrop"
+          className={`profile-photo-backdrop${closing ? ' is-closing' : ''}`}
+          onAnimationEnd={(event) => {
+            if (closing && event.target === event.currentTarget) finishClose();
+          }}
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) closeModal();
           }}

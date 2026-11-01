@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import { api } from '../api.js';
+import Reveal from '../components/Reveal.jsx';
 
 export default function Quizzes() {
   const { user } = useAuth();
@@ -33,23 +34,23 @@ export default function Quizzes() {
 
   return (
     <div className="quiz-student-page">
-      <header className="page-heading">
+      <Reveal as="header" className="page-heading">
         <div>
           <p className="page-eyebrow">YOUR STUDY SPACE / ASSESSMENTS</p>
           <h1>Quizzes</h1>
           <p className="page-description">Take your assigned quizzes and track your attempts.</p>
         </div>
-      </header>
+      </Reveal>
       {error && <div className="alert" role="alert">{error}</div>}
       {loading ? <p className="page-status">Loading quizzes...</p> : quizzes.length === 0 ? (
         <section className="panel"><p className="muted">There are no quizzes assigned yet.</p></section>
       ) : (
-        <ul className="quiz-student-list">
+        <ul className="quiz-student-list" data-reveal-group>
           {quizzes.map((quiz) => {
             const attempts = quiz.attempts || [];
             const latest = attempts[0];
             return (
-              <li className="panel quiz-student-card" key={quiz.id}>
+              <Reveal as="li" className="panel quiz-student-card" key={quiz.id}>
                 <div>
                   <p className="page-eyebrow">{quiz.questionCount} QUESTIONS</p>
                   <h2>{quiz.title}</h2>
@@ -77,7 +78,7 @@ export default function Quizzes() {
                     </button>
                   )}
                 </div>
-              </li>
+              </Reveal>
             );
           })}
         </ul>

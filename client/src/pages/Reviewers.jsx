@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
+import Reveal from '../components/Reveal.jsx';
 
 const fmt = (d) => new Date(d).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
 const yearOf = (d) => new Date(d).getFullYear();
@@ -37,7 +38,7 @@ export default function Reviewers() {
 
   return (
     <section className="reviewer-library">
-      <header className="reviewer-library-header">
+      <Reveal as="header" className="reviewer-library-header">
         <div>
           <p className="page-eyebrow">YOUR STUDY LIBRARY</p>
           <h1>Your reviewers</h1>
@@ -51,7 +52,7 @@ export default function Reviewers() {
             <span className="reviewer-library-stat-ready">{readyCount} ready</span>
           </div>
         )}
-      </header>
+      </Reveal>
       {error && <div className="alert" role="alert">{error}</div>}
       {!loading && reviewers.length > 0 && (
         <div className="reviewer-library-toolbar">
@@ -99,9 +100,9 @@ export default function Reviewers() {
           </button>
         </section>
       ) : (
-        <ul className="reviewer-library-list">
+        <ul className="reviewer-library-list" data-reveal-group>
           {visible.map((r) => (
-            <li key={r.id} className="reviewer-library-item">
+            <Reveal as="li" key={r.id} className="reviewer-library-item">
               <Link className="reviewer-library-card" to={`/app/reviewers/${r.id}`}>
                 <span className="reviewer-library-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v18H7.5A2.5 2.5 0 0 1 5 17.5z" /><path d="M5 17.5A2.5 2.5 0 0 1 7.5 15H20M9 7h7m-7 4h7" /></svg>
@@ -126,7 +127,7 @@ export default function Reviewers() {
                 </span>
                 <svg className="reviewer-library-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
               </Link>
-            </li>
+            </Reveal>
           ))}
         </ul>
       )}

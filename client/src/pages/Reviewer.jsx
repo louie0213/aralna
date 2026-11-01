@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import { api } from '../api.js';
 import FlashcardStack from '../components/FlashcardStack.jsx';
+import QuizLoader from '../components/QuizLoader.jsx';
+import Reveal from '../components/Reveal.jsx';
 
 function getTopics(reviewer) {
   if (Array.isArray(reviewer.topics) && reviewer.topics.length) return reviewer.topics;
@@ -70,11 +73,18 @@ export default function Reviewer() {
   const [downloading, setDownloading] = useState(false);
   const [downloadFormat, setDownloadFormat] = useState('');
   const [downloadError, setDownloadError] = useState('');
-  const [generatingQuiz, setGeneratingQuiz] = useState(false);
-  const [quizError, setQuizError] = useState('');
+  const [quizGeneration, setQuizGeneration] = useState(null);
+  const quizGenerationController = useRef(null);
 
   useEffect(() => {
     api.get(`/reviewers/${id}`).then((d) => setReviewer(d.reviewer)).catch((err) => setError(err.message));
+  }, [id]);
+  useEffect(() => {
+    setQuizGeneration(null);
+    return () => {
+      quizGenerationController.current?.abort();
+      quizGenerationController.current = null;
+    };
   }, [id]);
 
   async function remove() {
@@ -88,16 +98,24 @@ export default function Reviewer() {
   }
 
   async function startPracticeQuiz() {
-    setGeneratingQuiz(true);
-    setQuizError('');
+    quizGenerationController.current?.abort();
+    const controller = new AbortController();
+    quizGenerationController.current = controller;
+    setQuizGeneration({ status: 'loading' });
     try {
-      const { quiz } = await api.post(`/reviewers/${id}/quiz`, {});
-      navigate(`/app/quizzes/${quiz.id}`);
+      const { quiz } = await api.post(`/reviewers/${id}/quiz`, {}, { signal: controller.signal });
+      if (!controller.signal.aborted) setQuizGeneration({ status: 'success', quizId: quiz.id });
     } catch (err) {
-      setQuizError(err.message);
+      if (!controller.signal.aborted && err.name !== 'AbortError') {
+        setQuizGeneration({ status: 'error', message: err.message });
+      }
     } finally {
-      setGeneratingQuiz(false);
+      if (quizGenerationController.current === controller) quizGenerationController.current = null;
     }
+  }
+
+  function completePracticeQuiz() {
+    if (quizGeneration?.status === 'success') navigate(`/app/quizzes/${quizGeneration.quizId}`);
   }
 
   if (error) return <div className="alert" role="alert">{error}</div>;
@@ -298,7 +316,18 @@ export default function Reviewer() {
 
   return (
     <>
-      <header className="reviewer-header">
+      {quizGeneration && createPortal(
+        <div className="quiz-loader-overlay">
+          <QuizLoader
+            status={quizGeneration.status}
+            message={quizGeneration.status === 'error' ? `Oops, I couldn't read that one. ${quizGeneration.message}` : undefined}
+            onComplete={completePracticeQuiz}
+            onRetry={startPracticeQuiz}
+          />
+        </div>,
+        document.body
+      )}
+      <Reveal as="header" className="reviewer-header">
         <h1>{reviewer.documentName}</h1>
         <details className="reviewer-download-menu">
           <summary className="btn btn-ghost reviewer-download" aria-label="Choose download format">
@@ -315,11 +344,11 @@ export default function Reviewer() {
             }} disabled={downloading}>Download as PDF</button>
           </div>
         </details>
-      </header>
+      </Reveal>
       {downloadError && <div className="alert" role="alert">{downloadError}</div>}
 
       {(topics.length > 0 || years.length > 0 || keyTerms.length > 0) && (
-        <div className="toolbar reviewer-filter">
+        <Reveal className="toolbar reviewer-filter">
           <span className="reviewer-filter-label">Show</span>
           <ReviewerFilterDropdown
             label="Reviewer view"
@@ -376,12 +405,12 @@ export default function Reviewer() {
               ]}
             />
           )}
-        </div>
+        </Reveal>
       )}
 
-      <div className="reviewer-topics">
+      <div className="reviewer-topics" data-reveal-group>
         {selectedView === 'topics' && selectedTopics.map((topic, index) => (
-          <section className="reviewer-topic" key={`${topic.name}-${index}`}>
+          <Reveal as="section" className="reviewer-topic" key={`${topic.name}-${index}`}>
             <h2>{topic.name}</h2>
             <ul>
               {topic.bulletPoints.map((point, pointIndex) => <li key={pointIndex}>{point}</li>)}
@@ -406,31 +435,31 @@ export default function Reviewer() {
                 ))}
               </div>
             )}
-          </section>
+          </Reveal>
         ))}
         {selectedView === 'people' && selectedPeople.map((person) => (
-          <section className="reviewer-topic" key={person}>
+          <Reveal as="section" className="reviewer-topic" key={person}>
             <h2>{person}</h2>
-          </section>
+          </Reveal>
         ))}
         {selectedView === 'people' && people.length === 0 && <p className="muted">No people were identified in this document.</p>}
         {selectedView === 'years' && selectedTimeline.map((entry, index) => (
-          <section className="reviewer-topic" key={`${entry.year}-${index}`}>
+          <Reveal as="section" className="reviewer-topic" key={`${entry.year}-${index}`}>
             <h2>{entry.year}</h2>
             <p>{entry.summary}</p>
-          </section>
+          </Reveal>
         ))}
         {selectedView === 'terms' && selectedKeyTerm && (
-          <section className="reviewer-topic">
+          <Reveal as="section" className="reviewer-topic">
             <h2>{selectedKeyTerm.term}</h2>
             <p>{selectedKeyTerm.definition}</p>
-          </section>
+          </Reveal>
         )}
         {selectedView === 'topics' && topics.length === 0 && <p className="muted">No topic notes were generated for this document.</p>}
       </div>
 
       {flashcards.length > 0 && (
-        <section className="reviewer-flashcards" aria-labelledby="reviewer-flashcards-title">
+        <Reveal as="section" className="reviewer-flashcards" aria-labelledby="reviewer-flashcards-title">
           <div className="reviewer-flashcards-heading">
             <div>
               <p className="page-eyebrow">ACTIVE RECALL</p>
@@ -439,22 +468,21 @@ export default function Reviewer() {
             <p>Try to answer before flipping the card.</p>
           </div>
           <FlashcardStack cards={flashcards} />
-        </section>
+        </Reveal>
       )}
 
       {user.role === 'student' && (
         <>
-          <section className="reviewer-quiz-cta">
+          <Reveal as="section" className="reviewer-quiz-cta">
             <div>
               <p className="page-eyebrow">READY TO CHECK YOUR UNDERSTANDING?</p>
               <h2>Practice with this reviewer</h2>
               <p>Generate a quiz from these notes. Your score is recorded, with up to five attempts.</p>
             </div>
-            <button className="btn btn-primary" type="button" onClick={startPracticeQuiz} disabled={generatingQuiz}>
-              {generatingQuiz ? 'Preparing your quiz...' : 'Take practice quiz'} <span aria-hidden="true">↗</span>
+            <button className="btn btn-primary" type="button" onClick={startPracticeQuiz} disabled={quizGeneration?.status === 'loading'}>
+              {quizGeneration?.status === 'loading' ? 'Preparing your quiz...' : 'Take practice quiz'} <span aria-hidden="true">↗</span>
             </button>
-          </section>
-          {quizError && <div className="alert" role="alert">{quizError}</div>}
+          </Reveal>
         </>
       )}
       <button className="btn btn-ghost" onClick={remove}>Delete reviewer</button>

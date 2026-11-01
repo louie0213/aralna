@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import Dropzone from '../components/Dropzone.jsx';
+import Reveal from '../components/Reveal.jsx';
+import QuizLoader from '../components/QuizLoader.jsx';
 import { api } from '../api.js';
 
 const ICONS = { '.pdf': '\ud83d\udcc4', '.docx': '\ud83d\udcdd', '.pptx': '\ud83d\udcca', '.txt': '\ud83d\udcc3', '.png': '\ud83d\uddbc\ufe0f', '.jpg': '\ud83d\uddbc\ufe0f', '.jpeg': '\ud83d\uddbc\ufe0f', '.webp': '\ud83d\uddbc\ufe0f' };
@@ -13,7 +15,9 @@ export default function Upload() {
   const [documents, setDocuments] = useState([]);
   const [queue, setQueue] = useState([]); // { id, name, progress, stage: 'uploading' | 'reading' | 'error', message }
   const [openId, setOpenId] = useState(null);
-  const [generatingId, setGeneratingId] = useState(null);
+  const [closingPreviewId, setClosingPreviewId] = useState(null);
+  const [generation, setGeneration] = useState(null);
+  const generationController = useRef(null);
   const [error, setError] = useState('');
 
   function load() {
@@ -21,6 +25,7 @@ export default function Upload() {
   }
 
   useEffect(load, []);
+  useEffect(() => () => generationController.current?.abort(), []);
 
   function onFiles(files) {
     files.forEach((file) => {
@@ -48,44 +53,61 @@ export default function Upload() {
       await api.delete(`/documents/${id}`);
       setDocuments((list) => list.filter((d) => d.id !== id));
       if (openId === id) setOpenId(null);
+      setClosingPreviewId((current) => (current === id ? null : current));
     } catch (err) {
       setError(err.message);
     }
   }
 
   async function generateReviewer(documentId) {
+    generationController.current?.abort();
+    const controller = new AbortController();
+    generationController.current = controller;
     setError('');
-    setGeneratingId(documentId);
+    setGeneration({ documentId, status: 'loading' });
     try {
-      const { reviewer } = await api.post('/reviewers/generate', { documentId });
-      navigate(`/app/reviewers/${reviewer.id}`);
+      const { reviewer } = await api.post('/reviewers/generate', { documentId }, { signal: controller.signal });
+      if (!controller.signal.aborted) {
+        setGeneration({ documentId, status: 'success', reviewerId: reviewer.id });
+      }
     } catch (err) {
-      setError(err.message);
+      if (!controller.signal.aborted && err.name !== 'AbortError') {
+        setGeneration({ documentId, status: 'error', message: err.message });
+      }
     } finally {
-      setGeneratingId(null);
+      if (generationController.current === controller) generationController.current = null;
     }
   }
 
-  const generatingDocument = documents.find((document) => document.id === generatingId);
+  function completeGeneration() {
+    if (generation?.status === 'success') navigate(`/app/reviewers/${generation.reviewerId}`);
+  }
+
+  function togglePreview(documentId) {
+    if (openId === documentId) {
+      setOpenId(null);
+      setClosingPreviewId(documentId);
+      return;
+    }
+
+    setClosingPreviewId(null);
+    setOpenId(documentId);
+  }
 
   return (
-    <div className="upload-page" aria-busy={Boolean(generatingId)}>
-      {generatingId && createPortal(
-        <div className="generation-screen" role="status" aria-live="polite" aria-label="Generating study reviewer">
-          <section className="generation-window">
-            <span className="generation-spinner" aria-hidden="true" />
-            <p className="page-eyebrow">BUILDING YOUR REVIEWER</p>
-            <h2>Turning your notes into a study guide</h2>
-            <p className="generation-filename" title={generatingDocument?.originalName}>
-              {generatingDocument?.originalName || 'Your document'}
-            </p>
-            <div className="generation-progress" aria-hidden="true"><span /></div>
-            <p className="generation-note">Analyzing your material. This can take a little while.</p>
-          </section>
+    <div className="upload-page" aria-busy={generation?.status === 'loading'}>
+      {generation && createPortal(
+        <div className="quiz-loader-overlay">
+          <QuizLoader
+            status={generation.status}
+            message={generation.status === 'error' ? `Oops, I couldn't read that one. ${generation.message}` : undefined}
+            onComplete={completeGeneration}
+            onRetry={() => generateReviewer(generation.documentId)}
+          />
         </div>,
         document.body
       )}
-      <h1>Upload documents</h1>
+      <Reveal as="h1">Upload documents</Reveal>
       {error && <div className="alert" role="alert">{error}</div>}
       <Dropzone onFiles={onFiles} />
 
@@ -98,7 +120,7 @@ export default function Upload() {
                 <span className="queue-error">{item.message}</span>
               ) : (
                 <>
-                  <span className="queue-track"><span className="queue-fill" style={{ width: `${item.progress}%` }} /></span>
+                  <span className="queue-track"><span className="queue-fill" style={{ '--queue-progress': item.progress / 100 }} /></span>
                   <span className="queue-stage">{item.stage === 'uploading' ? `${item.progress}%` : 'Reading text...'}</span>
                 </>
               )}
@@ -107,40 +129,53 @@ export default function Upload() {
         </ul>
       )}
 
-      <section className="panel">
+      <Reveal as="section" className="panel">
         <h2>Your documents</h2>
         {documents.length === 0 ? (
           <p className="muted">Nothing uploaded yet. Drop a file above to get started.</p>
         ) : (
-          <ul className="doc-list">
+          <ul className="doc-list" data-reveal-group>
             {documents.map((d) => (
-              <li key={d.id} className="doc-row">
-                <div className="doc-main" onClick={() => setOpenId(openId === d.id ? null : d.id)}>
+              <Reveal as="li" key={d.id} className="doc-row">
+                <button
+                  type="button"
+                  className="doc-main"
+                  aria-expanded={openId === d.id}
+                  onClick={() => togglePreview(d.id)}
+                >
                   <span className="doc-icon">{iconFor(d.originalName)}</span>
                   <span className="doc-name" title={d.originalName}>{d.originalName}</span>
                   <span className={d.status === 'ready' ? 'badge' : 'badge badge-off'}>{d.status === 'ready' ? 'Ready' : 'Failed'}</span>
                   <span className="doc-meta">{kb(d.sizeBytes)}</span>
-                </div>
+                </button>
                 <div className="doc-actions">
                   <button
                     className="btn btn-primary btn-small"
-                    disabled={d.status !== 'ready' || generatingId !== null}
+                    disabled={d.status !== 'ready' || generation?.status === 'loading'}
                     onClick={() => generateReviewer(d.id)}
                   >
-                    {generatingId === d.id ? 'Generating...' : 'Generate reviewer'}
+                    {generation?.status === 'loading' && generation.documentId === d.id ? 'Generating...' : 'Generate reviewer'}
                   </button>
                   <button className="btn btn-ghost" onClick={() => remove(d.id)}>Delete</button>
                 </div>
-                {openId === d.id && (
-                  <div className="doc-preview">
+                {(openId === d.id || closingPreviewId === d.id) && (
+                  <div
+                    className={`doc-preview${closingPreviewId === d.id ? ' is-closing' : ''}`}
+                    aria-hidden={openId !== d.id}
+                    onAnimationEnd={(event) => {
+                      if (event.target === event.currentTarget && closingPreviewId === d.id) {
+                        setClosingPreviewId(null);
+                      }
+                    }}
+                  >
                     {d.status === 'failed' ? <p className="muted">{d.error}</p> : <pre>{d.extractedText?.slice(0, 4000) || 'No text extracted.'}</pre>}
                   </div>
                 )}
-              </li>
+              </Reveal>
             ))}
           </ul>
         )}
-      </section>
+      </Reveal>
     </div>
   );
 }

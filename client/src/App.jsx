@@ -16,7 +16,9 @@ import AdminQuizzes from './pages/admin/Quizzes.jsx';
 import Quizzes from './pages/Quizzes.jsx';
 import Quiz from './pages/Quiz.jsx';
 import Landing from './pages/Landing.jsx';
+import QuizLoaderDemo from './pages/QuizLoaderDemo.jsx';
 import RouteTransition from './components/RouteTransition.jsx';
+import MotionRuntime from './components/MotionRuntime.jsx';
 
 const homeFor = (user) => (user.role === 'admin' ? '/admin' : '/app');
 
@@ -56,10 +58,14 @@ function QuizFocusGuard({ children }) {
 export default function App() {
   return (
     <QuizFocusGuard>
+      <MotionRuntime />
       <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
-        <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
+        <Route element={<RouteTransition />}>
+          <Route path="/" element={<Landing />} />
+          {import.meta.env.DEV && <Route path="/quiz-loader-demo" element={<QuizLoaderDemo />} />}
+          <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
+          <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
+        </Route>
         <Route path="/app" element={<Guarded role={['student', 'admin']}><StudentLayout /></Guarded>}>
           <Route element={<RouteTransition />}>
             <Route index element={<StudentHome />} />

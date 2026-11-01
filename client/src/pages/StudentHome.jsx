@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
+import Reveal from '../components/Reveal.jsx';
 
 export default function StudentHome() {
   const { user } = useAuth();
@@ -8,7 +9,7 @@ export default function StudentHome() {
 
   return (
     <div className="student-dashboard">
-      <header className="page-heading student-page-heading">
+      <Reveal as="header" className="page-heading student-page-heading">
         <div>
           <p className="page-eyebrow">YOUR STUDY SPACE</p>
           <h1>Welcome back, {firstName}</h1>
@@ -18,29 +19,29 @@ export default function StudentHome() {
           <span className="account-status-label">ACCOUNT STATUS</span>
           <span className="account-status-value"><span aria-hidden="true" />{accountLabel}</span>
         </aside>
-      </header>
+      </Reveal>
 
-      <section className="student-start">
+      <Reveal as="section" className="student-start" data-motion-ambient>
         <div className="student-start-copy">
-          <p className="page-eyebrow">A GOOD PLACE TO START</p>
-          <h2>Turn your class notes into a study guide.</h2>
-          <p>Upload a document and build a focused reviewer with summaries, key terms, flashcards, and practice questions.</p>
-          <Link className="btn btn-primary student-start-action" to="/app/upload">Upload notes <span aria-hidden="true">↗</span></Link>
+          <Reveal as="p" className="page-eyebrow">A GOOD PLACE TO START</Reveal>
+          <Reveal as="h2" delay="70ms">Turn your class notes into a study guide.</Reveal>
+          <Reveal as="p" delay="140ms">Upload a document and build a focused reviewer with summaries, key terms, flashcards, and practice questions.</Reveal>
+          <Reveal as={Link} className="btn btn-primary student-start-action" to="/app/upload" delay="210ms">Upload notes <span aria-hidden="true">↗</span></Reveal>
         </div>
         <div className="student-start-index" aria-hidden="true"><span>01</span><i /></div>
-      </section>
+      </Reveal>
 
-      <div className="student-dashboard-grid">
-        <section className="student-info-card">
+      <div className="student-dashboard-grid" data-reveal-group>
+        <Reveal as="section" className="student-info-card">
           <div className="student-info-heading">
             <div><p className="page-eyebrow">YOUR LIBRARY</p><h2>Study reviewers</h2></div>
             <span className="student-info-mark" aria-hidden="true">02</span>
           </div>
           <p>Generated summaries, flashcards, and quizzes stay together here, ready for your next review.</p>
           <Link className="text-action" to="/app/reviewers">Browse reviewers <span aria-hidden="true">↗</span></Link>
-        </section>
+        </Reveal>
 
-        <section className="student-info-card account-card">
+        <Reveal as="section" className="student-info-card account-card">
           <div className="student-info-heading">
             <div><p className="page-eyebrow">ACCOUNT DETAILS</p><h2>Your profile</h2></div>
             <span className="student-info-mark" aria-hidden="true">03</span>
@@ -50,7 +51,7 @@ export default function StudentHome() {
             <div><dt>Program</dt><dd>{user.program || 'Not set'}</dd></div>
             <div><dt>Email</dt><dd>{user.email}</dd></div>
           </dl>
-        </section>
+        </Reveal>
       </div>
     </div>
   );

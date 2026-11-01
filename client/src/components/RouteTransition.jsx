@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
 function getRouteOrder(pathname) {
@@ -21,10 +21,19 @@ export default function RouteTransition() {
   const direction = currentOrder >= 0 && previousOrder >= 0 && currentOrder < previousOrder
     ? 'route-transition-back'
     : 'route-transition-forward';
-  previousPath.current = pathname;
+  const isAuthRoute = pathname === '/login' || pathname === '/register';
+  const isAuthRouteSwitch = isAuthRoute
+    && previousPath.current !== pathname
+    && (previousPath.current === '/login' || previousPath.current === '/register');
+
+  useLayoutEffect(() => {
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    previousPath.current = pathname;
+  }, [pathname]);
 
   return (
-    <div className={`route-transition ${direction}`} key={pathname}>
+    <div className={`route-transition ${direction}${isAuthRoute ? ' route-transition-auth' : ''}${isAuthRouteSwitch ? ' route-transition-auth-switch' : ''}`} key={pathname}>
       <Outlet />
     </div>
   );

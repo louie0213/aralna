@@ -1,0 +1,170 @@
+.quiz-loader {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  color: var(--ql-text);
+  text-align: center;
+}
+
+.quiz-loader__scene {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.quiz-loader__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.ql-paper {
+  fill: var(--ql-paper);
+  stroke: var(--ql-line);
+  stroke-width: 1.5;
+}
+.ql-accent-fill { fill: var(--ql-accent); }
+.ql-pink-fill { fill: var(--ql-pink); }
+.ql-yellow-fill { fill: var(--ql-yellow); }
+.ql-doc-line, .ql-card-line {
+  fill: none;
+  stroke: var(--ql-line);
+  stroke-linecap: round;
+  stroke-width: 3;
+}
+.ql-doc-highlight {
+  fill: none;
+  stroke: var(--ql-pink);
+  stroke-linecap: round;
+  stroke-width: 5;
+}
+.ql-scanner {
+  fill: none;
+  stroke: var(--ql-accent);
+  stroke-dasharray: 4 5;
+  stroke-linecap: round;
+  stroke-width: 2;
+  opacity: 0.36;
+}
+.ql-particle { fill: var(--ql-yellow); }
+.ql-robot { transform-origin: 205px 137px; animation: ql-bob var(--ql-idle) ease-in-out infinite; will-change: transform; }
+.ql-head { transform-origin: 205px 108px; animation: ql-nod var(--ql-loop) var(--ql-easing) infinite; }
+.ql-robot-shell { fill: var(--ql-accent); }
+.ql-robot-face, .ql-chest { fill: var(--ql-paper); stroke: var(--ql-line); stroke-width: 1.5; }
+.ql-eye-white { fill: var(--ql-text); }
+.ql-eye { transform-box: fill-box; transform-origin: center; animation: ql-eye-expression var(--ql-loop) ease-in-out infinite; }
+.ql-eye-right { animation-delay: var(--ql-eye-stagger); }
+.ql-eye-pupil { fill: var(--ql-paper); transform-box: fill-box; transform-origin: center; animation: ql-read-eyes var(--ql-loop) ease-in-out infinite; }
+.ql-eye-right .ql-eye-pupil { animation-delay: var(--ql-eye-stagger); }
+.ql-mouth, .ql-antenna, .ql-limb {
+  fill: none;
+  stroke: var(--ql-text);
+  stroke-linecap: round;
+  stroke-width: 3;
+}
+.ql-mouth { stroke: var(--ql-pink); }
+.ql-ear { fill: var(--ql-pink); }
+.ql-antenna-tip { fill: var(--ql-yellow); animation: ql-antenna var(--ql-antenna) ease-in-out infinite; transform-box: fill-box; transform-origin: center; will-change: transform, opacity; }
+.ql-antenna-halo { fill: none; stroke: var(--ql-yellow); stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; animation: ql-thinking-glow var(--ql-loop) ease-in-out infinite; }
+.ql-chest-line { fill: none; stroke: var(--ql-accent); stroke-linecap: round; stroke-width: 2.5; }
+.ql-doc { transform-origin: 56px 117px; animation: ql-document var(--ql-loop) var(--ql-easing) infinite; }
+.ql-doc-line, .ql-doc-highlight { transform-box: fill-box; transform-origin: left center; animation: ql-line-consume var(--ql-loop) ease-in-out infinite; }
+.ql-doc-line:nth-of-type(3) { animation-delay: var(--ql-line-stagger); }
+.ql-doc-line:nth-of-type(4) { animation-delay: calc(var(--ql-line-stagger) * 2); }
+.ql-doc-line:nth-of-type(6) { animation-delay: calc(var(--ql-line-stagger) * 3); }
+.ql-doc-line:nth-of-type(7) { animation-delay: calc(var(--ql-line-stagger) * 4); }
+.ql-doc-line:nth-of-type(8) { animation-delay: calc(var(--ql-line-stagger) * 5); }
+.ql-doc-highlight { animation-delay: calc(var(--ql-line-stagger) * 2); }
+.ql-scanner { animation: ql-scanner var(--ql-loop) ease-in-out infinite; }
+.ql-particle { transform-box: fill-box; transform-origin: center; animation: ql-transfer var(--ql-loop) ease-in-out infinite; }
+.ql-particle-two { animation-delay: var(--ql-particle-stagger); }
+.ql-particle-three { animation-delay: calc(var(--ql-particle-stagger) * 2); }
+.ql-card-stack { transform-origin: 364px 130px; animation: ql-stack-pop var(--ql-loop) var(--ql-easing) infinite; }
+.ql-card { transform-origin: 360px 120px; animation: ql-card-arrive var(--ql-loop) var(--ql-easing) infinite; will-change: transform, opacity; }
+.ql-card-border { stroke-width: 1.5; }
+.ql-card-title { fill: none; stroke: var(--ql-text); stroke-linecap: round; stroke-width: 2.5; }
+.ql-card-line { stroke-width: 2; }
+.ql-spark { fill: none; stroke: var(--ql-yellow); stroke-linecap: round; stroke-width: 2.5; transform-box: fill-box; transform-origin: center; animation: ql-twinkle var(--ql-sparkle) ease-in-out infinite; will-change: transform, opacity; }
+.ql-spark-two { animation-delay: var(--ql-sparkle-stagger); }
+.ql-spark-three { animation-delay: calc(var(--ql-sparkle-stagger) * 2); }
+.ql-sparkles { transform-origin: 205px 112px; animation: ql-orbit var(--ql-loop) ease-in-out infinite; will-change: transform; }
+
+.quiz-loader__status {
+  min-height: 1.6em;
+  margin: 4px 0 0;
+  color: var(--ql-muted);
+  font-size: clamp(0.9rem, 3.5vw, 1.05rem);
+  font-weight: 800;
+}
+.quiz-loader__message {
+  display: inline-block;
+  animation: ql-message-in var(--ql-message-fade) var(--ql-easing) both;
+}
+.quiz-loader__retry { width: auto; margin-top: 16px; }
+
+.quiz-loader--paused * { animation-play-state: paused !important; }
+.quiz-loader--success .ql-robot { animation: ql-cheer var(--ql-success) var(--ql-easing) both; }
+.quiz-loader--success .ql-head { animation: none; }
+.quiz-loader--success .ql-card { animation: ql-card-pop var(--ql-success) var(--ql-easing) both; }
+.quiz-loader--success .ql-card-stack { animation: ql-stack-pop-success var(--ql-success) var(--ql-easing) both; }
+.quiz-loader--success .ql-spark { animation: ql-confetti var(--ql-success) var(--ql-easing) both; }
+.quiz-loader--success .ql-spark-two { animation-delay: var(--ql-success-stagger); }
+.quiz-loader--success .ql-spark-three { animation-delay: calc(var(--ql-success-stagger) * 2); }
+.quiz-loader--success .ql-sparkles { animation: none; }
+.quiz-loader--success .ql-doc, .quiz-loader--success .ql-particle, .quiz-loader--success .ql-scanner { animation-play-state: paused; }
+.quiz-loader--error .ql-robot, .quiz-loader--error .ql-doc, .quiz-loader--error .ql-card,
+.quiz-loader--error .ql-card-stack, .quiz-loader--error .ql-particle, .quiz-loader--error .ql-scanner {
+  animation-play-state: paused;
+}
+.quiz-loader--error .ql-head { animation: ql-error-tilt var(--ql-error-tilt) var(--ql-easing) both; }
+.quiz-loader--error .ql-antenna-tip { animation: none; opacity: 0.3; }
+
+.quiz-loader-overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: color-mix(in srgb, var(--chalk) 88%, transparent);
+}
+.quiz-loader-overlay > .quiz-loader { max-width: 520px; }
+
+.quiz-loader-demo { max-width: 760px; margin: 0 auto; }
+.quiz-loader-demo__panel { margin-top: 20px; padding: 24px; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; }
+.quiz-loader-demo__controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.quiz-loader-demo__controls .btn { width: auto; margin: 0; }
+.quiz-loader-demo__controls [aria-pressed='true'] { outline: 2px solid var(--ink); outline-offset: 2px; }
+.quiz-loader-demo__details { margin-top: 20px; }
+.quiz-loader-demo__details pre { max-width: 100%; padding: 16px; overflow-x: auto; color: var(--text); background: var(--chalk); border-radius: 8px; font-size: 0.8rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.quiz-loader-demo__note { color: var(--muted); }
+
+@keyframes ql-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes ql-nod { 0%, 62%, 78%, 100% { transform: rotate(0); } 68%, 73% { transform: rotate(-4deg); } }
+@keyframes ql-antenna { 0%, 100% { opacity: 0.68; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.16); } }
+@keyframes ql-thinking-glow { 0%, 47%, 73%, 100% { opacity: 0; transform: scale(0.7); } 55%, 66% { opacity: 0.7; transform: scale(1.35); } }
+@keyframes ql-eye-expression { 0%, 47%, 72%, 84%, 87%, 100% { transform: scaleY(1); } 55%, 65% { transform: scaleY(0.72); } 86% { transform: scaleY(0.08); } }
+@keyframes ql-orbit { 0%, 48%, 74%, 100% { transform: rotate(0); } 56%, 66% { transform: rotate(14deg); } }
+@keyframes ql-read-eyes { 0%, 8%, 20%, 28%, 48%, 100% { transform: translateX(0); } 13%, 24% { transform: translateX(-3px); } 34%, 44% { transform: translateX(3px); } }
+@keyframes ql-document { 0%, 8% { opacity: 0; transform: translateX(-20px); } 18%, 72% { opacity: 1; transform: translateX(0); } 84%, 92% { opacity: 0.22; transform: translateX(-5px); } 100% { opacity: 0; transform: translateX(-10px); } }
+@keyframes ql-line-consume { 0%, 22% { opacity: 1; transform: scaleX(1); } 34%, 47% { opacity: 0.2; transform: scaleX(0.05); } 65%, 100% { opacity: 0; transform: scaleX(0); } }
+@keyframes ql-scanner { 0%, 20%, 55%, 100% { opacity: 0.16; } 30%, 48% { opacity: 0.88; } }
+@keyframes ql-transfer { 0%, 22% { opacity: 0; transform: translateX(0) scale(0.5); } 30% { opacity: 1; } 48% { opacity: 1; transform: translateX(47px) scale(1); } 58%, 100% { opacity: 0; transform: translateX(55px) scale(0.4); } }
+@keyframes ql-card-arrive { 0%, 62% { opacity: 0; transform: translate(20px, 7px) scale(0.86); } 78%, 88% { opacity: 1; transform: translate(0, 0) scale(1); } 96% { opacity: 0.35; transform: translate(-2px, 2px) scale(0.98); } 100% { opacity: 0; transform: translate(-4px, 3px) scale(0.96); } }
+@keyframes ql-stack-pop { 0%, 72% { opacity: 0.75; transform: scale(0.96); } 84%, 100% { opacity: 1; transform: scale(1); } }
+@keyframes ql-twinkle { 0%, 100% { opacity: 0.16; transform: scale(0.68); } 50% { opacity: 1; transform: scale(1.1); } }
+@keyframes ql-message-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ql-cheer { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(-13px); } 72% { transform: translateY(2px); } }
+@keyframes ql-card-pop { 0% { opacity: 0.7; transform: scale(0.94) translateY(4px); } 65% { opacity: 1; transform: scale(1.04) translateY(-3px); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes ql-stack-pop-success { 0%, 100% { transform: scale(1); } 55% { transform: scale(1.05); } }
+@keyframes ql-confetti { 0% { opacity: 0; transform: scale(0.2) translateY(5px); } 35% { opacity: 1; transform: scale(1.15) translateY(-6px); } 100% { opacity: 0; transform: scale(0.7) translateY(-12px); } }
+@keyframes ql-error-tilt { 0%, 100% { transform: rotate(0); } 40% { transform: rotate(8deg); } 72% { transform: rotate(-4deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .quiz-loader * { animation: none !important; transition: none !important; }
+  .quiz-loader .ql-antenna-tip { animation: ql-antenna var(--ql-antenna) ease-in-out infinite !important; }
+  .quiz-loader .ql-doc, .quiz-loader .ql-card, .quiz-loader .ql-card-stack,
+  .quiz-loader .ql-scanner, .quiz-loader .ql-particles, .quiz-loader .ql-sparkles { opacity: 0; }
+  .quiz-loader--error .ql-antenna-tip { animation: none !important; opacity: 0.3; }
+}

@@ -1,0 +1,315 @@
+:root {
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-hover-ease: ease-out;
+  --motion-duration-hover: 180ms;
+  --motion-duration-page: 210ms;
+  --motion-duration-reveal: 420ms;
+  --motion-duration-modal: 240ms;
+  --motion-duration-accordion: 180ms;
+  --motion-duration-progress: 200ms;
+  --motion-duration-auth: 380ms;
+  --motion-duration-sparkle: 600ms;
+  --motion-duration-reveal-lite: 320ms;
+  --motion-duration-flip: 650ms;
+  --motion-distance-route: 8px;
+  --motion-distance-route-negative: -8px;
+  --motion-distance-modal: 10px;
+  --motion-distance-modal-exit: 8px;
+  --motion-distance-accordion: 6px;
+  --motion-distance-accordion-exit: -4px;
+  --motion-distance-auth: 6px;
+  --motion-distance: 14px;
+  --motion-lift: 3px;
+  --motion-lift-negative: -3px;
+  --motion-hover-scale: 1.03;
+  --motion-press-scale: 0.97;
+  --motion-card-hover-scale: 1.02;
+  --motion-selected-scale: 1.01;
+  --motion-modal-scale-start: 0.98;
+  --motion-modal-scale-exit: 0.985;
+  --motion-navbar-scale: 0.96;
+  --motion-stagger-1: 55ms;
+  --motion-stagger-2: 110ms;
+  --motion-stagger-3: 165ms;
+  --motion-stagger-4: 220ms;
+  --motion-stagger-5: 275ms;
+}
+
+body { transition: none; }
+.field input { transition: transform var(--motion-duration-hover) var(--motion-hover-ease); }
+.reviewer-search { transition: none; }
+.auth-card {
+  animation: auth-card-enter var(--motion-duration-auth) var(--motion-ease) both;
+}
+.shell-brand-name,
+.shell-user-name,
+.nav-label,
+.shell-logout span {
+  transition:
+    opacity var(--motion-duration-hover) var(--motion-hover-ease),
+    transform var(--motion-duration-hover) var(--motion-hover-ease);
+}
+
+[data-reveal] {
+  transition:
+    opacity var(--motion-duration-reveal) var(--motion-ease) var(--motion-delay, 0ms),
+    transform var(--motion-duration-reveal) var(--motion-ease) var(--motion-delay, 0ms);
+}
+[data-reveal][data-reveal-pending='true'] {
+  opacity: 0;
+  transform: translate3d(0, var(--motion-distance), 0);
+}
+[data-reveal-group] > [data-reveal]:nth-child(2) { --motion-delay: var(--motion-stagger-1); }
+[data-reveal-group] > [data-reveal]:nth-child(3) { --motion-delay: var(--motion-stagger-2); }
+[data-reveal-group] > [data-reveal]:nth-child(4) { --motion-delay: var(--motion-stagger-3); }
+[data-reveal-group] > [data-reveal]:nth-child(5) { --motion-delay: var(--motion-stagger-4); }
+[data-reveal-group] > [data-reveal]:nth-child(6) { --motion-delay: var(--motion-stagger-5); }
+
+.route-transition {
+  animation: route-enter var(--motion-duration-page) var(--motion-ease) both;
+}
+.route-transition-back { animation-name: route-enter-back; }
+.route-transition-auth {
+  animation: auth-route-enter var(--motion-duration-page) ease-out both;
+}
+.route-transition-auth-switch { animation: none; }
+@keyframes route-enter {
+  from { opacity: 0; transform: translate3d(var(--motion-distance-route), 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes route-enter-back {
+  from { opacity: 0; transform: translate3d(var(--motion-distance-route-negative), 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes auth-card-enter {
+  from { opacity: 0; transform: translate3d(0, var(--motion-distance-auth), 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes auth-route-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.btn { transition: transform var(--motion-duration-hover) var(--motion-hover-ease); }
+.nav a {
+  transition: transform var(--motion-duration-hover) var(--motion-hover-ease);
+}
+.theme-toggle-thumb {
+  transition: transform var(--motion-duration-hover) var(--motion-ease);
+}
+.theme-toggle-icon {
+  transition: transform var(--motion-duration-hover) var(--motion-ease);
+}
+.stack-card-inner {
+  transition: transform var(--motion-duration-flip) var(--motion-ease);
+}
+.quiz-answer-option {
+  transition: transform var(--motion-duration-hover) var(--motion-hover-ease);
+}
+.metric-card,
+.student-info-card,
+.reviewer-library-card,
+.quiz-student-card,
+.doc-row,
+.method-steps article,
+.study-preview {
+  transition: transform var(--motion-duration-hover) var(--motion-hover-ease);
+}
+.profile-photo-backdrop {
+  animation: modal-fade-in var(--motion-duration-modal) ease-out both;
+}
+.doc-preview {
+  animation: doc-preview-enter var(--motion-duration-accordion) var(--motion-hover-ease) both;
+}
+.doc-preview.is-closing { animation-name: doc-preview-exit; }
+.queue-fill { transition: transform var(--motion-duration-progress) ease-out; }
+.profile-photo-modal {
+  animation: modal-enter var(--motion-duration-modal) var(--motion-ease) both;
+}
+.profile-photo-backdrop.is-closing {
+  animation: modal-fade-out var(--motion-duration-modal) ease-out both;
+  pointer-events: none;
+}
+.profile-photo-backdrop.is-closing .profile-photo-modal {
+  animation: modal-exit var(--motion-duration-modal) ease-in both;
+}
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modal-enter {
+  from { opacity: 0; transform: translate3d(0, var(--motion-distance-modal), 0) scale(var(--motion-modal-scale-start)); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes modal-fade-out {
+  to { opacity: 0; }
+}
+@keyframes modal-exit {
+  to { opacity: 0; transform: translate3d(0, var(--motion-distance-modal-exit), 0) scale(var(--motion-modal-scale-exit)); }
+}
+@keyframes doc-preview-enter {
+  from { opacity: 0; transform: translate3d(0, var(--motion-distance-accordion), 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes doc-preview-exit {
+  to { opacity: 0; transform: translate3d(0, var(--motion-distance-accordion-exit), 0); }
+}
+
+@media (hover: hover) {
+  .btn:hover:not(:disabled),
+  .nav a:hover {
+    transform: translateY(var(--motion-lift-negative)) scale(var(--motion-hover-scale));
+  }
+  .theme-toggle:hover .theme-toggle-icon { transform: rotate(12deg); }
+  .metric-card:hover,
+  .student-info-card:hover,
+  .reviewer-library-card:hover,
+  .quiz-student-card:hover,
+  .doc-row:hover,
+  .method-steps article:hover,
+  .study-preview:hover {
+    transform: translateY(var(--motion-lift-negative)) scale(var(--motion-card-hover-scale));
+  }
+}
+.btn:active:not(:disabled) { transform: scale(var(--motion-press-scale)); }
+.quiz-answer-option:has(input:checked) { transform: scale(var(--motion-selected-scale)); }
+.landing-brand .logo-mark__accent {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@media (hover: hover) {
+  .landing-brand:hover .logo-mark__accent,
+  .landing-brand:focus-visible .logo-mark__accent {
+    animation: logo-sparkle var(--motion-duration-sparkle) var(--motion-ease) both;
+  }
+}
+@keyframes logo-sparkle {
+  0% { transform: rotate(0) scale(1); }
+  55% { transform: rotate(18deg) scale(1.14); }
+  100% { transform: rotate(0) scale(1); }
+}
+
+@supports (animation-timeline: scroll()) {
+  .landing-nav {
+    animation: navbar-scroll-shrink linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 160px;
+    transform-origin: top center;
+  }
+  @keyframes navbar-scroll-shrink {
+    to { transform: scaleY(var(--motion-navbar-scale)); }
+  }
+}
+
+@media (max-width: 800px) {
+  .shell-bar { position: sticky; }
+  .shell-bar .nav {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 12px;
+    left: 12px;
+    z-index: 21;
+    display: flex;
+    width: auto;
+    max-width: none;
+    max-height: none;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 8px;
+    overflow: visible;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    opacity: 0;
+    transform: translate3d(0, -8px, 0) scale(0.985);
+    transform-origin: top center;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity var(--motion-duration-hover) ease-out,
+      transform var(--motion-duration-hover) var(--motion-ease),
+      visibility 0s linear var(--motion-duration-hover);
+  }
+  .shell-menu-open .shell-bar .nav {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
+  }
+  .shell-bar .nav a,
+  .shell-bar .nav .quiz-locked-nav-item {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 700px) {
+  :root {
+    --motion-duration-auth: 300ms;
+    --motion-distance-auth: 4px;
+  }
+}
+
+@media (min-width: 801px) {
+  .shell-main { transition: none; }
+  .shell-collapse-toggle { transition: color var(--motion-duration-hover) ease-out, background-color var(--motion-duration-hover) ease-out; }
+  .shell-logout span { transition: opacity var(--motion-duration-hover) ease-out; }
+}
+
+html[data-motion-hidden='true'] [data-motion-ambient],
+html[data-motion-hidden='true'] [data-motion-ambient] *,
+html[data-motion-hidden='true'] [data-motion-ambient]::before,
+html[data-motion-hidden='true'] [data-motion-ambient]::after,
+[data-motion-active='false'],
+[data-motion-active='false'] *,
+[data-motion-active='false']::before,
+[data-motion-active='false']::after {
+  animation-play-state: paused !important;
+}
+
+html[data-motion-lite='true'] [data-motion-ambient],
+html[data-motion-lite='true'] [data-motion-ambient] *,
+html[data-motion-lite='true'] [data-motion-ambient]::before,
+html[data-motion-lite='true'] [data-motion-ambient]::after {
+  animation: none !important;
+}
+html[data-motion-lite='true'] [data-reveal] {
+  transition-duration: var(--motion-duration-reveal-lite);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  [data-reveal][data-reveal-pending='true'] { transform: none; }
+  .landing-hero::before,
+  .landing-hero::after,
+  .student-start::before,
+  .student-start::after,
+  [data-motion-ambient],
+  [data-motion-ambient] *,
+  [data-motion-ambient]::before,
+  [data-motion-ambient]::after {
+    animation: none !important;
+  }
+  .btn:hover:not(:disabled),
+  .btn:active:not(:disabled),
+  .nav a:hover,
+  .metric-card:hover,
+  .student-info-card:hover,
+  .reviewer-library-card:hover,
+  .quiz-student-card:hover,
+  .doc-row:hover,
+  .method-steps article:hover,
+  .study-preview:hover,
+  .quiz-answer-option:has(input:checked) {
+    transform: none;
+  }
+}
