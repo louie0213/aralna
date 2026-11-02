@@ -16,6 +16,8 @@ const MAX_PERSON_NAME_CHARS = 100;
 const MAX_TIMELINE_ENTRIES = 24;
 const MAX_YEAR_CHARS = 20;
 const MAX_TIMELINE_SUMMARY_CHARS = 300;
+const PROGRAMMING_LANGUAGES = new Set(['Python', 'JavaScript', 'Java', 'C++', 'C#', 'Other']);
+const PROGRAMMING_EXAMPLES = new Set(['variables', 'conditionals', 'loops', 'functions', 'arrays']);
 
 const SYSTEM_PROMPT = `You are an assistant that turns study material into a study guide for a student.
 Base everything only on the text the student gives you. Do not invent facts that are not in the text.
@@ -23,13 +25,15 @@ Organize the material by topic. For each topic, include 2 to 5 concise bullet po
 Also collect up to 15 important terms from the text, each with a concise definition based only on the text.
 Do not make flashcards, questions, or an overview.
 
-For topics whose source material contains a mathematical formula or a problem that uses one, include a "formulaExamples" array on that topic. Each entry must contain the formula and a worked example written as 3 to 5 short, numbered steps, with each step on a new line in the workedExample string. Use simple values and explain the calculation in everyday language: state the given values, substitute them into the formula, calculate one operation at a time, then state the answer and its units when applicable. Use formulas supported by the source; if you choose simple illustrative values not present in the source, label them as an example. Write powers with superscript characters (for example, x² rather than x^2); when an example uses a squared value, show that squaring means multiplying the value by itself (for example, 3² = 3 x 3 = 9). The area-of-a-square example below demonstrates the requested notation and steps; use it only if the source supports that formula. Keep formulas in readable notation. If a topic has no formula or math problem, use an empty array. Do not add formula sections for non-math material.
+For math topics whose source material contains a mathematical formula or a problem that uses one, include a "formulaExamples" array on that topic. Each entry must contain the formula and a worked example written as 3 to 5 short, numbered steps, with each step on a new line in the workedExample string. Use simple values and explain the calculation in everyday language: state the given values, substitute them into the formula, calculate one operation at a time, then state the answer and its units when applicable. Use formulas supported by the source; if you choose simple illustrative values not present in the source, label them as an example. Write powers with superscript characters (for example, x² rather than x^2); when an example uses a squared value, show that squaring means multiplying the value by itself (for example, 3² = 3 x 3 = 9). The area-of-a-square example below demonstrates the requested notation and steps; use it only if the source supports that formula. Keep formulas in readable notation. If a topic has no formula or math problem, use an empty array. Do not add formula sections for programming lessons or other non-math material; keep programming examples in the programming console.
 
 Also look for specific years or dates tied to events in the text (for example a history, timeline, or chronology of developments).
 If you find any, also build a "timeline": one entry per year that has an event in the text, with a 1-2 sentence summary of what happened that year according to the text.
 If the text does not mention any specific years, return an empty array for "timeline". Do not invent years or events that are not in the text.
 
 Also list up to 30 real people explicitly named in the source text. Include each person's name once. Do not include fictional example names, places, organizations, or inferred people. Return an empty array if no people are named.
+
+Analyze the actual instructional content, not just the document title, to determine whether it teaches programming. Set "isProgrammingRelated" to true only when the text substantively teaches a programming language, syntax, variables or data types, conditionals, loops, functions, arrays or objects, algorithms, or programming exercises. A passing mention of computers, software, technology, or code without programming instruction is not enough. When true, set "programmingLanguage" to one of "Python", "JavaScript", "Java", "C++", "C#", or "Other", and "programmingExample" to the single best matching template id: "variables", "conditionals", "loops", "functions", or "arrays". Choose a template supported by the actual lesson. If the language or template cannot be identified confidently, set isProgrammingRelated to false and both fields to empty strings. Do not generate executable source code.
 
 Reply with JSON only, no extra words, in exactly this shape:
 {
@@ -51,7 +55,10 @@ Reply with JSON only, no extra words, in exactly this shape:
   "timeline": [
     { "year": "1896", "summary": "One or two sentences on what happened that year, based only on the text." }
   ],
-  "people": ["Marie Curie", "Albert Einstein"]
+  "people": ["Marie Curie", "Albert Einstein"],
+  "isProgrammingRelated": false,
+  "programmingLanguage": "",
+  "programmingExample": ""
 }`;
 
 const clip = (str, max) => {
@@ -113,7 +120,19 @@ function sanitize(raw) {
         .map((person) => clip(person, MAX_PERSON_NAME_CHARS)))].filter(Boolean)
     : [];
 
-  return { topics, keyTerms, timeline, people };
+  const programmingRelated = raw.isProgrammingRelated === true
+    && PROGRAMMING_LANGUAGES.has(raw.programmingLanguage)
+    && PROGRAMMING_EXAMPLES.has(raw.programmingExample);
+
+  return {
+    topics,
+    keyTerms,
+    timeline,
+    people,
+    isProgrammingRelated: programmingRelated,
+    programmingLanguage: programmingRelated ? raw.programmingLanguage : '',
+    programmingExample: programmingRelated ? raw.programmingExample : '',
+  };
 }
 
 export async function generateReviewer(text, documentName) {

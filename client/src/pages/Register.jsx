@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import AuthLayout from '../components/AuthLayout.jsx';
 import Field from '../components/Field.jsx';
+import ServerWaitingCard from '../components/ServerWaitingCard.jsx';
+import { useServerStatus } from '../useServerStatus.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -19,6 +21,7 @@ function validate(f) {
 
 export default function Register() {
   const { register } = useAuth();
+  const serverStatus = useServerStatus();
   const navigate = useNavigate();
   const [form, setForm] = useState({ fullName: '', program: '', email: '', password: '', confirm: '' });
   const [errors, setErrors] = useState({});
@@ -27,8 +30,8 @@ export default function Register() {
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  async function onSubmit(e) {
-    e.preventDefault();
+  async function submitRegistration() {
+    if (serverStatus === 'waking') return;
     setError('');
     const found = validate(form);
     setErrors(found);
@@ -40,14 +43,22 @@ export default function Register() {
       navigate('/app', { replace: true });
     } catch (err) {
       setErrors(err.fieldErrors || {});
-      setError(err.message);
+      setError(err.status === undefined ? '' : err.message);
     } finally {
       setBusy(false);
     }
   }
 
+  function onSubmit(e) {
+    e.preventDefault();
+    submitRegistration();
+  }
+
   return (
     <AuthLayout wide>
+      {(serverStatus === 'waking' || serverStatus === 'failed') && (
+        <ServerWaitingCard status={serverStatus} onRetry={submitRegistration} />
+      )}
       <h1>Create your student account</h1>
       <p className="auth-sub">Enter your details below to create your student account.</p>
       {error && <div className="alert" role="alert">{error}</div>}
@@ -61,7 +72,9 @@ export default function Register() {
           <Field label="Password" name="password" type="password" autoComplete="new-password" value={form.password} onChange={onChange} error={errors.password} />
           <Field label="Confirm password" name="confirm" type="password" autoComplete="new-password" value={form.confirm} onChange={onChange} error={errors.confirm} />
         </div>
-        <button className="btn btn-primary" disabled={busy}>{busy ? 'Creating account...' : 'Create account'}</button>
+        <button className="btn btn-primary" disabled={busy || serverStatus === 'waking'}>
+          {serverStatus === 'waking' ? 'Waiting for server...' : busy ? 'Creating account...' : 'Create account'}
+        </button>
       </form>
       <p className="auth-switch">Already registered? <Link to="/login">Log in</Link></p>
     </AuthLayout>

@@ -19,6 +19,7 @@ export default function AuthLayout({ children, wide = false }) {
           </div>
           <p className="auth-side-footer">YOUR NOTES, READY TO STUDY</p>
         </div>
+        <span className="auth-doodle-stamp" aria-hidden="true">✳ FIELD NOTES</span>
       </aside>
       <div className="auth-theme"><ThemeToggle /></div>
       <main className="auth-main">

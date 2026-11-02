@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import { api } from '../api.js';
 import FlashcardStack from '../components/FlashcardStack.jsx';
+import InteractiveCodeConsole from '../components/InteractiveCodeConsole.jsx';
 import QuizLoader from '../components/QuizLoader.jsx';
 import Reveal from '../components/Reveal.jsx';
 
@@ -87,16 +88,6 @@ export default function Reviewer() {
     };
   }, [id]);
 
-  async function remove() {
-    if (!window.confirm('Delete this reviewer? This cannot be undone.')) return;
-    try {
-      await api.delete(`/reviewers/${id}`);
-      navigate('/app/reviewers', { replace: true });
-    } catch (err) {
-      setError(err.message);
-    }
-  }
-
   async function startPracticeQuiz() {
     quizGenerationController.current?.abort();
     const controller = new AbortController();
@@ -126,7 +117,6 @@ export default function Reviewer() {
       <>
         <h1>{reviewer.documentName}</h1>
         <div className="alert" role="alert">{reviewer.error || 'This reviewer could not be generated.'}</div>
-        <button className="btn btn-ghost" onClick={remove}>Delete</button>
       </>
     );
   }
@@ -458,6 +448,14 @@ export default function Reviewer() {
         {selectedView === 'topics' && topics.length === 0 && <p className="muted">No topic notes were generated for this document.</p>}
       </div>
 
+      {reviewer.isProgrammingRelated === true && (
+        <InteractiveCodeConsole
+          key={reviewer.id}
+          language={reviewer.programmingLanguage}
+          example={reviewer.programmingExample}
+        />
+      )}
+
       {flashcards.length > 0 && (
         <Reveal as="section" className="reviewer-flashcards" aria-labelledby="reviewer-flashcards-title">
           <div className="reviewer-flashcards-heading">
@@ -485,7 +483,6 @@ export default function Reviewer() {
           </Reveal>
         </>
       )}
-      <button className="btn btn-ghost" onClick={remove}>Delete reviewer</button>
     </>
   );
 }

@@ -14,7 +14,7 @@ export function ThemeProvider({ children }) {
     document.documentElement.dataset.theme = theme;
     window.localStorage.setItem('aralna-theme', theme);
     const favicon = document.querySelector('link[rel="icon"]');
-    if (favicon) favicon.href = theme === 'dark' ? '/aralna-mark-dark.svg' : '/aralna-mark.svg';
+    if (favicon) favicon.href = theme === 'dark' ? '/aralna-mark-dark.svg?v=2' : '/aralna-mark.svg?v=2';
   }, [theme]);
 
   const value = { theme, toggleTheme: () => setTheme((current) => current === 'dark' ? 'light' : 'dark') };

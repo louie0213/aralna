@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../../api.js';
+import QuizGeneratingLoader from '../../components/QuizGeneratingLoader.jsx';
 
 const newQuestion = () => ({ type: 'multiple-choice', prompt: '', choices: ['', ''], answer: '' });
 const fmtDate = (date) => new Date(date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
@@ -94,7 +95,9 @@ export default function AdminQuizzes() {
   const [description, setDescription] = useState('');
   const [sourceFile, setSourceFile] = useState(null);
   const [questionCount, setQuestionCount] = useState('10');
-  const [generating, setGenerating] = useState(false);
+  const [generationStatus, setGenerationStatus] = useState('idle');
+  const generationController = useRef(null);
+  const generationTimeout = useRef(null);
   const [students, setStudents] = useState([]);
   const [assignmentMode, setAssignmentMode] = useState('all');
   const [assignedTo, setAssignedTo] = useState([]);
@@ -105,6 +108,11 @@ export default function AdminQuizzes() {
   const [deletingQuizId, setDeletingQuizId] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+
+  useEffect(() => () => {
+    generationController.current?.abort();
+    window.clearTimeout(generationTimeout.current);
+  }, []);
 
   async function loadPageData() {
     const [quizData, studentData] = await Promise.all([
@@ -130,21 +138,46 @@ export default function AdminQuizzes() {
       setError('Choose a source file first.');
       return;
     }
+    generationController.current?.abort();
+    window.clearTimeout(generationTimeout.current);
+    const controller = new AbortController();
+    generationController.current = controller;
+    let timedOut = false;
     setError('');
     setNotice('');
-    setGenerating(true);
+    setGenerationStatus('loading');
+    generationTimeout.current = window.setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+      setGenerationStatus('error');
+    }, 60000);
     try {
       const data = await api.upload('/quizzes/generate-from-file', sourceFile, {
         fields: { questionCount },
+        signal: controller.signal,
       });
+      if (controller.signal.aborted) return;
       setTitle(data.title);
       setQuestions(data.questions);
       setNotice(`Generated ${data.questions.length} questions. Review and edit them before publishing.`);
+      setGenerationStatus('idle');
     } catch (err) {
-      setError(err.message);
+      if (timedOut) {
+        setGenerationStatus('error');
+      } else if (!controller.signal.aborted && err.name !== 'AbortError') {
+        setGenerationStatus('error');
+      }
     } finally {
-      setGenerating(false);
+      window.clearTimeout(generationTimeout.current);
+      if (generationController.current === controller) generationController.current = null;
     }
+  }
+
+  function cancelGeneration() {
+    window.clearTimeout(generationTimeout.current);
+    generationController.current?.abort();
+    generationController.current = null;
+    setGenerationStatus('idle');
   }
 
   async function createQuiz(event) {
@@ -237,7 +270,14 @@ export default function AdminQuizzes() {
       {error && <div className="alert" role="alert">{error}</div>}
       {notice && <div className="auth-notice" role="status">{notice}</div>}
 
-      <form className="panel quiz-create-form" onSubmit={createQuiz}>
+      {generationStatus !== 'idle' ? (
+        <QuizGeneratingLoader
+          status={generationStatus}
+          fileName={sourceFile?.name || ''}
+          onCancel={cancelGeneration}
+          onRetry={generateFromFile}
+        />
+      ) : <form className="panel quiz-create-form" onSubmit={createQuiz}>
         <div className="section-heading">
           <div><p className="page-eyebrow">NEW ASSESSMENT</p><h2>Create a quiz</h2></div>
           <span className="section-meta">Up to 50 questions</span>
@@ -247,14 +287,18 @@ export default function AdminQuizzes() {
           <h3>Generate questions from a file</h3>
           <p className="muted">Upload source material; generated questions and answers will be added below for review before publishing.</p>
           <div className="quiz-file-controls">
-            <label className="quiz-label">
+            <label className="quiz-label quiz-file-picker">
               Source file
               <input
-                className="quiz-input"
+                className="quiz-file-picker__input"
                 type="file"
                 accept=".pdf,.docx,.pptx,.txt,.png,.jpg,.jpeg,.webp"
                 onChange={(event) => setSourceFile(event.target.files?.[0] || null)}
               />
+              <span className="quiz-file-picker__control">
+                <span className="quiz-file-picker__button">Upload</span>
+                {sourceFile && <span className="quiz-file-picker__name" title={sourceFile.name}>{sourceFile.name}</span>}
+              </span>
             </label>
             <label className="quiz-label">
               Number of questions
@@ -269,8 +313,8 @@ export default function AdminQuizzes() {
               />
             </label>
           </div>
-          <button className="btn btn-ghost" type="button" disabled={generating || !sourceFile} onClick={generateFromFile}>
-            {generating ? 'Reading file and generating...' : 'Generate questions'}
+          <button className="btn btn-ghost" type="button" disabled={!sourceFile} onClick={generateFromFile}>
+            Generate questions
           </button>
         </section>
         <label className="quiz-label">
@@ -336,7 +380,7 @@ export default function AdminQuizzes() {
           </button>
           <button className="btn btn-primary" type="submit" disabled={saving}>{saving ? 'Publishing...' : 'Publish quiz'}</button>
         </div>
-      </form>
+      </form>}
 
       <section className="quiz-list-section">
         <div className="section-heading">

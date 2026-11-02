@@ -27,10 +27,10 @@ export default function Upload() {
   useEffect(load, []);
   useEffect(() => () => generationController.current?.abort(), []);
 
-  function onFiles(files) {
+  function onFiles(files, onUploadComplete) {
     files.forEach((file) => {
       const qid = `${Date.now()}-${Math.random()}`;
-      setQueue((q) => [...q, { id: qid, name: file.name, progress: 0, stage: 'uploading' }]);
+      setQueue((q) => [...q, { id: qid, name: file.name, size: file.size, progress: 0, stage: 'uploading' }]);
       api
         .upload('/documents/upload', file, {
           onProgress: (pct) =>
@@ -38,6 +38,7 @@ export default function Upload() {
         })
         .then(() => {
           setQueue((q) => q.filter((item) => item.id !== qid));
+          onUploadComplete?.();
           load();
         })
         .catch((err) => {
@@ -107,29 +108,13 @@ export default function Upload() {
         </div>,
         document.body
       )}
-      <Reveal as="h1">Upload documents</Reveal>
+      <Reveal as="h1" className="upload-page-title">Upload documents</Reveal>
       {error && <div className="alert" role="alert">{error}</div>}
-      <Dropzone onFiles={onFiles} />
+      <Reveal className="upload-dropzone-reveal">
+        <Dropzone onFiles={onFiles} queue={queue} />
+      </Reveal>
 
-      {queue.length > 0 && (
-        <ul className="queue">
-          {queue.map((item) => (
-            <li key={item.id} className="queue-row">
-              <span className="queue-name" title={item.name}>{item.name}</span>
-              {item.stage === 'error' ? (
-                <span className="queue-error">{item.message}</span>
-              ) : (
-                <>
-                  <span className="queue-track"><span className="queue-fill" style={{ '--queue-progress': item.progress / 100 }} /></span>
-                  <span className="queue-stage">{item.stage === 'uploading' ? `${item.progress}%` : 'Reading text...'}</span>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <Reveal as="section" className="panel">
+      <Reveal as="section" className="panel upload-documents-panel">
         <h2>Your documents</h2>
         {documents.length === 0 ? (
           <p className="muted">Nothing uploaded yet. Drop a file above to get started.</p>

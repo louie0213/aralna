@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import { useTheme } from '../ThemeContext.jsx';
@@ -5,13 +6,21 @@ import ThemeToggle from '../components/ThemeToggle.jsx';
 import BrandMark from '../components/BrandMark.jsx';
 import BrandWordmark from '../components/BrandWordmark.jsx';
 import Reveal from '../components/Reveal.jsx';
+import { api } from '../api.js';
 
 const homeFor = (user) => user.role === 'admin' ? '/admin' : '/app';
 
 export default function Landing() {
   const { user } = useAuth();
   const { theme } = useTheme();
+  const healthPingStarted = useRef(false);
   const dashboardPath = user ? homeFor(user) : '/register';
+
+  useEffect(() => {
+    if (healthPingStarted.current) return;
+    healthPingStarted.current = true;
+    api.get('/health').catch(() => {});
+  }, []);
 
   return (
     <div className="landing" data-theme={theme}>
@@ -38,6 +47,7 @@ export default function Landing() {
 
       <main>
         <section className="landing-hero" data-motion-ambient>
+          <span className="landing-hero-star" aria-hidden="true">✳</span>
           <div className="landing-copy" data-reveal-group>
             <Reveal as="p" className="eyebrow"><span className="eyebrow-dot" /> YOUR NOTES, READY TO STUDY</Reveal>
             <Reveal as="h1" delay="70ms">Make your next<br />study session <em>count.</em></Reveal>

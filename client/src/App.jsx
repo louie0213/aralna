@@ -19,12 +19,20 @@ import Landing from './pages/Landing.jsx';
 import QuizLoaderDemo from './pages/QuizLoaderDemo.jsx';
 import RouteTransition from './components/RouteTransition.jsx';
 import MotionRuntime from './components/MotionRuntime.jsx';
+import ServerWaitingCard from './components/ServerWaitingCard.jsx';
+import { useServerStatus } from './useServerStatus.js';
 
 const homeFor = (user) => (user.role === 'admin' ? '/admin' : '/app');
 
 function Guarded({ role, children }) {
-  const { user, loading } = useAuth();
-  if (loading) return <p className="page-status">Loading...</p>;
+  const { user, authStatus, checkAuth } = useAuth();
+  const serverStatus = useServerStatus();
+  if (serverStatus === 'waking') return <ServerWaitingCard status="waking" />;
+  if (authStatus === 'checking') {
+    if (serverStatus === 'failed') return <ServerWaitingCard status="failed" onRetry={checkAuth} />;
+    return null;
+  }
+  if (authStatus === 'failed') return <ServerWaitingCard status="failed" onRetry={checkAuth} />;
   if (!user) return <Navigate to="/login" replace />;
   const allowedRoles = Array.isArray(role) ? role : [role];
   if (!allowedRoles.includes(user.role)) return <Navigate to={homeFor(user)} replace />;
@@ -32,8 +40,14 @@ function Guarded({ role, children }) {
 }
 
 function GuestOnly({ children }) {
-  const { user, loading } = useAuth();
-  if (loading) return <p className="page-status">Loading...</p>;
+  const { user, authStatus, checkAuth } = useAuth();
+  const serverStatus = useServerStatus();
+  if (serverStatus === 'waking') return <ServerWaitingCard status="waking" />;
+  if (authStatus === 'checking') {
+    if (serverStatus === 'failed') return <ServerWaitingCard status="failed" onRetry={checkAuth} />;
+    return null;
+  }
+  if (authStatus === 'failed') return <ServerWaitingCard status="failed" onRetry={checkAuth} />;
   if (user) return <Navigate to={homeFor(user)} replace />;
   return children;
 }

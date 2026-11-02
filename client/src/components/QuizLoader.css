@@ -163,7 +163,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .quiz-loader * { animation: none !important; transition: none !important; }
-  .quiz-loader .ql-antenna-tip { animation: ql-antenna var(--ql-antenna) ease-in-out infinite !important; }
   .quiz-loader .ql-doc, .quiz-loader .ql-card, .quiz-loader .ql-card-stack,
   .quiz-loader .ql-scanner, .quiz-loader .ql-particles, .quiz-loader .ql-sparkles { opacity: 0; }
   .quiz-loader--error .ql-antenna-tip { animation: none !important; opacity: 0.3; }

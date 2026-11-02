@@ -6,6 +6,7 @@ import { AuthProvider } from './AuthContext.jsx';
 import { ThemeProvider } from './ThemeContext.jsx';
 import './styles.css';
 import './motion.css';
+import './doodle.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

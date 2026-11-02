@@ -10,7 +10,6 @@
   --motion-duration-auth: 380ms;
   --motion-duration-sparkle: 600ms;
   --motion-duration-reveal-lite: 320ms;
-  --motion-duration-flip: 650ms;
   --motion-distance-route: 8px;
   --motion-distance-route-negative: -8px;
   --motion-distance-modal: 10px;
@@ -99,9 +98,6 @@ body { transition: none; }
 }
 .theme-toggle-icon {
   transition: transform var(--motion-duration-hover) var(--motion-ease);
-}
-.stack-card-inner {
-  transition: transform var(--motion-duration-flip) var(--motion-ease);
 }
 .quiz-answer-option {
   transition: transform var(--motion-duration-hover) var(--motion-hover-ease);

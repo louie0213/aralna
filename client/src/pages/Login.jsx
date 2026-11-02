@@ -4,9 +4,12 @@ import { useAuth } from '../AuthContext.jsx';
 import AuthLayout from '../components/AuthLayout.jsx';
 import Field from '../components/Field.jsx';
 import { api } from '../api.js';
+import ServerWaitingCard from '../components/ServerWaitingCard.jsx';
+import { useServerStatus } from '../useServerStatus.js';
 
 export default function Login() {
   const { login } = useAuth();
+  const serverStatus = useServerStatus();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [resetForm, setResetForm] = useState({ code: '', password: '' });
@@ -23,8 +26,8 @@ export default function Login() {
     setNotice('');
   }
 
-  async function onSubmit(e) {
-    e.preventDefault();
+  async function submitLogin() {
+    if (serverStatus === 'waking') return;
     setError('');
     if (!form.email || !form.password) return setError('Enter your email and password.');
     setBusy(true);
@@ -32,14 +35,19 @@ export default function Login() {
       const user = await login(form.email, form.password);
       navigate(user.role === 'admin' ? '/admin' : '/app', { replace: true });
     } catch (err) {
-      setError(err.message);
+      setError(err.status === undefined ? '' : err.message);
     } finally {
       setBusy(false);
     }
   }
 
-  async function requestResetCode(e) {
+  function onSubmit(e) {
     e.preventDefault();
+    submitLogin();
+  }
+
+  async function submitResetCode() {
+    if (serverStatus === 'waking') return;
     setError('');
     if (!form.email) return setError('Enter the email address for your account.');
     setBusy(true);
@@ -48,14 +56,19 @@ export default function Login() {
       setNotice(data.message);
       setMode('reset');
     } catch (err) {
-      setError(err.message);
+      setError(err.status === undefined ? '' : err.message);
     } finally {
       setBusy(false);
     }
   }
 
-  async function resetPassword(e) {
+  function requestResetCode(e) {
     e.preventDefault();
+    submitResetCode();
+  }
+
+  async function submitPasswordReset() {
+    if (serverStatus === 'waking') return;
     setError('');
     if (!resetForm.code || !resetForm.password) {
       return setError('Enter the code from your email and a new password.');
@@ -72,14 +85,28 @@ export default function Login() {
       setMode('login');
       setNotice(data.message);
     } catch (err) {
-      setError(err.message);
+      setError(err.status === undefined ? '' : err.message);
     } finally {
       setBusy(false);
     }
   }
 
+  function resetPassword(e) {
+    e.preventDefault();
+    submitPasswordReset();
+  }
+
+  function retryCurrentRequest() {
+    if (mode === 'login') return submitLogin();
+    if (mode === 'request') return submitResetCode();
+    return submitPasswordReset();
+  }
+
   return (
     <AuthLayout>
+      {(serverStatus === 'waking' || serverStatus === 'failed') && (
+        <ServerWaitingCard status={serverStatus} onRetry={retryCurrentRequest} />
+      )}
       {mode === 'login' && (
         <>
           <h1>Log in</h1>
@@ -90,7 +117,9 @@ export default function Login() {
             <Field label="Email" name="email" type="email" autoComplete="email" value={form.email} onChange={onChange} />
             <Field label="Password" name="password" type="password" autoComplete="current-password" value={form.password} onChange={onChange} />
             <p className="auth-forgot"><button type="button" className="auth-link" onClick={() => changeMode('request')}>Forgot password?</button></p>
-            <button className="btn btn-primary" disabled={busy}>{busy ? 'Logging in...' : 'Log in'}</button>
+            <button className="btn btn-primary" disabled={busy || serverStatus === 'waking'}>
+              {serverStatus === 'waking' ? 'Waiting for server...' : busy ? 'Logging in...' : 'Log in'}
+            </button>
           </form>
           <p className="auth-switch">New student? <Link to="/register">Create an account</Link></p>
         </>
@@ -110,8 +139,8 @@ export default function Login() {
           {error && <div className="alert" role="alert">{error}</div>}
           <form onSubmit={requestResetCode} noValidate>
             <Field label="Email" name="email" type="email" autoComplete="email" value={form.email} onChange={onChange} />
-            <button className="btn btn-primary auth-reset-submit" disabled={busy}>
-              {busy ? 'Sending code...' : <>Send reset code <span aria-hidden="true">→</span></>}
+            <button className="btn btn-primary auth-reset-submit" disabled={busy || serverStatus === 'waking'}>
+              {serverStatus === 'waking' ? 'Waiting for server...' : busy ? 'Sending code...' : <>Send reset code <span aria-hidden="true">→</span></>}
             </button>
           </form>
           <button type="button" className="auth-reset-back" onClick={() => changeMode('login')}>
@@ -171,8 +200,8 @@ export default function Login() {
                   onChange={(e) => setResetForm({ ...resetForm, password: e.target.value })}
                 />
                 <p className="auth-password-help">At least 8 characters, including a letter and a number.</p>
-                <button className="btn btn-primary auth-reset-submit" disabled={busy}>
-                  {busy ? 'Updating password...' : 'Reset password'}
+                <button className="btn btn-primary auth-reset-submit" disabled={busy || serverStatus === 'waking'}>
+                  {serverStatus === 'waking' ? 'Waiting for server...' : busy ? 'Updating password...' : 'Reset password'}
                 </button>
               </>
             )}

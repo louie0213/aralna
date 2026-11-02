@@ -6,7 +6,8 @@ export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [authStatus, setAuthStatus] = useState('checking');
+  const loading = authStatus === 'checking';
   const [activeQuizSession, setActiveQuizSession] = useState(() => {
     try {
       return JSON.parse(window.localStorage.getItem('aralna_active_quiz') || 'null');
@@ -31,14 +32,21 @@ export function AuthProvider({ children }) {
     setActiveQuizSession(null);
   }, []);
 
-  // Restore the session from the cookie when the app loads.
-  useEffect(() => {
-    api
-      .get('/auth/me')
-      .then((data) => setUser(data.user))
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
+  const checkAuth = useCallback(async () => {
+    setAuthStatus('checking');
+    try {
+      const data = await api.get('/auth/me');
+      setUser(data.user);
+      setAuthStatus('authenticated');
+    } catch (error) {
+      setUser(null);
+      setAuthStatus(error.status === 401 ? 'logged_out' : 'failed');
+    }
   }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   useEffect(() => {
     if (loading) return;
@@ -87,12 +95,14 @@ export function AuthProvider({ children }) {
   async function login(email, password) {
     const data = await api.post('/auth/login', { email, password });
     setUser(data.user);
+    setAuthStatus('authenticated');
     return data.user;
   }
 
   async function register(form) {
     const data = await api.post('/auth/register', form);
     setUser(data.user);
+    setAuthStatus('authenticated');
     return data.user;
   }
 
@@ -110,10 +120,11 @@ export function AuthProvider({ children }) {
     await api.post('/auth/logout');
     endQuizSession();
     setUser(null);
+    setAuthStatus('logged_out');
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfilePicture, removeProfilePicture, activeQuizId, startQuizSession, endQuizSession }}>
+    <AuthContext.Provider value={{ user, loading, authStatus, checkAuth, login, register, logout, updateProfilePicture, removeProfilePicture, activeQuizId, startQuizSession, endQuizSession }}>
       {children}
     </AuthContext.Provider>
   );

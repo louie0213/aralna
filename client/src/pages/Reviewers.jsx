@@ -12,6 +12,7 @@ export default function Reviewers() {
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState('all');
   const [query, setQuery] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     api
@@ -35,6 +36,20 @@ export default function Reviewers() {
   }, [reviewers, year, query]);
 
   const readyCount = reviewers.filter((reviewer) => reviewer.status === 'ready').length;
+
+  async function deleteReviewer(reviewer) {
+    if (!window.confirm(`Delete "${reviewer.documentName}"? This cannot be undone.`)) return;
+    setDeletingId(reviewer.id);
+    setError('');
+    try {
+      await api.delete(`/reviewers/${reviewer.id}`);
+      setReviewers((current) => current.filter((item) => item.id !== reviewer.id));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   return (
     <section className="reviewer-library">
@@ -127,6 +142,15 @@ export default function Reviewers() {
                 </span>
                 <svg className="reviewer-library-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
               </Link>
+              <button
+                className="btn btn-ghost reviewer-library-delete"
+                type="button"
+                disabled={Boolean(deletingId)}
+                onClick={() => deleteReviewer(r)}
+                aria-label={`Delete ${r.documentName}`}
+              >
+                {deletingId === r.id ? 'Deleting...' : 'Delete'}
+              </button>
             </Reveal>
           ))}
         </ul>
