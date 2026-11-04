@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import { api } from '../api.js';
@@ -18,9 +18,11 @@ export default function Quiz() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [attemptStarted, setAttemptStarted] = useState(false);
+  const [questionIndex, setQuestionIndex] = useState(0);
   const [error, setError] = useState('');
   const [submission, setSubmission] = useState(null);
   const [navigationWarning, setNavigationWarning] = useState(false);
+  const attemptFormRef = useRef(null);
 
   useEffect(() => {
     setAttemptStarted(user.role === 'student' && activeQuizId === id);
@@ -34,7 +36,13 @@ export default function Quiz() {
     });
   }
 
+  function advanceQuestion() {
+    if (!attemptFormRef.current?.reportValidity()) return;
+    setQuestionIndex((current) => Math.min(current + 1, quiz.questions.length - 1));
+  }
+
   useEffect(() => {
+    setQuestionIndex(0);
     api.get(`/quizzes/${id}`)
       .then((data) => {
         setQuiz(data.quiz);
@@ -84,6 +92,7 @@ export default function Quiz() {
       setSubmission({ ...result.attempt, answerResults: result.answerResults });
       setAttempts((current) => [...current, result.attempt]);
       setAnswers({});
+      setQuestionIndex(0);
       window.sessionStorage.removeItem(`aralna_quiz_answers_${id}`);
       setRemainingAttempts(result.remainingAttempts);
       setAttemptStarted(false);
@@ -104,6 +113,7 @@ export default function Quiz() {
     setError('');
     setSubmission(null);
     setAnswers({});
+    setQuestionIndex(0);
     window.sessionStorage.removeItem(`aralna_quiz_answers_${id}`);
     setAttemptStarted(true);
     startQuizSession(id);
@@ -112,6 +122,14 @@ export default function Quiz() {
   if (loading) return <p className="page-status">Loading quiz...</p>;
   if (error && !quiz) return <div className="alert" role="alert">{error}</div>;
   if (!quiz) return null;
+  if (quiz.questions.length === 0) {
+    return <div className="alert" role="alert">This quiz has no questions available.</div>;
+  }
+
+  const questionCount = quiz.questions.length;
+  const question = quiz.questions[questionIndex];
+  const isLastQuestion = questionIndex === questionCount - 1;
+  const progress = Math.round(((questionIndex + 1) / questionCount) * 100);
 
   return (
     <div className="quiz-taking-page">
@@ -160,42 +178,75 @@ export default function Quiz() {
       {user.role !== 'student' ? (
         <section className="panel"><p className="muted">Admin preview: students can take this quiz from their study space.</p></section>
       ) : remainingAttempts > 0 && attemptStarted ? (
-        <form className="quiz-taking-form" onSubmit={submit} data-reveal-group>
-          {quiz.questions.map((question, index) => (
-            <Reveal as="section" className="panel quiz-student-question" key={question.id}>
-              <p className="page-eyebrow">QUESTION {index + 1} · {question.type.replace('-', ' ').toUpperCase()}</p>
-              <h2>{question.prompt}</h2>
-              {question.type === 'multiple-choice' && (
-                <div className="quiz-answer-options">
-                  {question.choices.map((choice) => (
-                    <label className="quiz-answer-option" key={choice}>
-                      <input type="radio" name={`question-${question.id}`} value={choice} checked={answers[question.id] === choice} onChange={() => updateAnswer(question.id, choice)} required />
-                      <span>{choice}</span>
-                    </label>
-                  ))}
-                </div>
+        <form ref={attemptFormRef} className="quiz-taking-form" onSubmit={submit} data-reveal-group>
+          <Reveal as="section" className="panel quiz-student-question" key={question.id}>
+            <p className="page-eyebrow">QUESTION {questionIndex + 1} · {question.type.replace('-', ' ').toUpperCase()}</p>
+            <h2>{question.prompt}</h2>
+            {question.type === 'multiple-choice' && (
+              <div className="quiz-answer-options">
+                {question.choices.map((choice) => (
+                  <label className="quiz-answer-option" key={choice}>
+                    <input type="radio" name={`question-${question.id}`} value={choice} checked={answers[question.id] === choice} onChange={() => updateAnswer(question.id, choice)} required />
+                    <span>{choice}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+            {question.type === 'identification' && (
+              <label className="quiz-label">
+                Your answer
+                <input className="quiz-input" maxLength={2000} value={answers[question.id] || ''} onChange={(e) => updateAnswer(question.id, e.target.value)} required />
+              </label>
+            )}
+            {question.type === 'true-false' && (
+              <div className="quiz-answer-options quiz-true-false">
+                {['true', 'false'].map((value) => (
+                  <label className="quiz-answer-option" key={value}>
+                    <input type="radio" name={`question-${question.id}`} value={value} checked={answers[question.id] === value} onChange={() => updateAnswer(question.id, value)} required />
+                    <span>{value === 'true' ? 'True' : 'False'}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </Reveal>
+          <div className="quiz-step-bar">
+            <div className="quiz-step-progress">
+              <div className="quiz-step-progress-label">
+                <span aria-live="polite">Question {questionIndex + 1} of {questionCount}</span>
+                <span>{progress}%</span>
+              </div>
+              <div
+                className="quiz-progress-track"
+                role="progressbar"
+                aria-label="Quiz progress"
+                aria-valuemin={1}
+                aria-valuemax={questionCount}
+                aria-valuenow={questionIndex + 1}
+                aria-valuetext={`Question ${questionIndex + 1} of ${questionCount}`}
+              >
+                <span style={{ '--quiz-progress': `${progress}%` }} />
+              </div>
+            </div>
+            <div className="quiz-step-actions">
+              <button
+                className="btn btn-ghost quiz-step-button"
+                type="button"
+                onClick={() => setQuestionIndex((current) => Math.max(current - 1, 0))}
+                disabled={questionIndex === 0 || submitting}
+              >
+                Previous
+              </button>
+              {isLastQuestion ? (
+                <button className="btn btn-primary quiz-step-button" type="submit" disabled={submitting}>
+                  {submitting ? 'Submitting...' : 'Submit attempt'}
+                </button>
+              ) : (
+                <button className="btn btn-primary quiz-step-button" type="button" onClick={advanceQuestion} disabled={submitting}>
+                  Next
+                </button>
               )}
-              {question.type === 'identification' && (
-                <label className="quiz-label">
-                  Your answer
-                  <input className="quiz-input" maxLength={2000} value={answers[question.id] || ''} onChange={(e) => updateAnswer(question.id, e.target.value)} required />
-                </label>
-              )}
-              {question.type === 'true-false' && (
-                <div className="quiz-answer-options quiz-true-false">
-                  {['true', 'false'].map((value) => (
-                    <label className="quiz-answer-option" key={value}>
-                      <input type="radio" name={`question-${question.id}`} value={value} checked={answers[question.id] === value} onChange={() => updateAnswer(question.id, value)} required />
-                      <span>{value === 'true' ? 'True' : 'False'}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </Reveal>
-          ))}
-          <button className="btn btn-primary quiz-submit" type="submit" disabled={submitting}>
-            {submitting ? 'Submitting...' : 'Submit attempt'}
-          </button>
+            </div>
+          </div>
         </form>
       ) : remainingAttempts > 0 ? (
         <section className="panel quiz-attempt-start">

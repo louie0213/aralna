@@ -7,6 +7,7 @@ export default function FlashcardStack({ cards }) {
   const [dragging, setDragging] = useState(false);
   const [leaving, setLeaving] = useState('');
   const [entering, setEntering] = useState('');
+  const [isAnimating, setIsAnimating] = useState(false);
   const pointerRef = useRef(null);
   const suppressClickRef = useRef(false);
   const animationLockRef = useRef(false);
@@ -18,6 +19,7 @@ export default function FlashcardStack({ cards }) {
   function go(next, direction) {
     if (animationLockRef.current || next < 0 || next >= cards.length) return;
     animationLockRef.current = true;
+    setIsAnimating(true);
     setLeaving(direction);
     setEntering('');
     setDragX(0);
@@ -30,6 +32,7 @@ export default function FlashcardStack({ cards }) {
       animationTimerRef.current = window.setTimeout(() => {
         setEntering('');
         animationLockRef.current = false;
+        setIsAnimating(false);
       }, 360);
     }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 160 : 420);
   }
@@ -165,7 +168,23 @@ export default function FlashcardStack({ cards }) {
       </div>
 
       <div className="stack-nav">
+        <button
+          className="btn btn-ghost flashcard-nav-button"
+          type="button"
+          onClick={() => go(index - 1, 'left')}
+          disabled={index === 0 || isAnimating}
+        >
+          Previous
+        </button>
         <span className="stack-count">Card {index + 1} of {cards.length}</span>
+        <button
+          className="btn btn-primary flashcard-nav-button"
+          type="button"
+          onClick={() => go(index + 1, 'right')}
+          disabled={index === cards.length - 1 || isAnimating}
+        >
+          Next
+        </button>
       </div>
     </div>
   );

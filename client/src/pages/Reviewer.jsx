@@ -68,6 +68,7 @@ export default function Reviewer() {
   const [error, setError] = useState('');
   const [view, setView] = useState('topics');
   const [selectedTopic, setSelectedTopic] = useState('all');
+  const [expandedTopics, setExpandedTopics] = useState({});
   const [selectedPerson, setSelectedPerson] = useState('all');
   const [selectedYear, setSelectedYear] = useState('all');
   const [selectedTerm, setSelectedTerm] = useState('');
@@ -399,34 +400,53 @@ export default function Reviewer() {
       )}
 
       <div className="reviewer-topics" data-reveal-group>
-        {selectedView === 'topics' && selectedTopics.map((topic, index) => (
-          <Reveal as="section" className="reviewer-topic" key={`${topic.name}-${index}`}>
-            <h2>{topic.name}</h2>
-            <ul>
-              {topic.bulletPoints.map((point, pointIndex) => <li key={pointIndex}>{point}</li>)}
-            </ul>
-            {topic.formulaExamples?.length > 0 && (
-              <div className="reviewer-formulas">
-                {topic.formulaExamples.map((entry, formulaIndex) => (
-                  <article className="reviewer-formula" key={`${entry.formula}-${formulaIndex}`}>
-                    <p className="reviewer-formula-label">Formula</p>
-                    <code>{entry.formula}</code>
-                    <p className="reviewer-formula-label">Worked example</p>
-                    {getWorkedExampleSteps(entry.workedExample).length ? (
-                      <ol className="reviewer-worked-steps">
-                        {getWorkedExampleSteps(entry.workedExample).map((step, stepIndex) => (
-                          <li key={stepIndex}>{step}</li>
-                        ))}
-                      </ol>
-                    ) : (
-                      <p className="reviewer-worked-example">{entry.workedExample}</p>
-                    )}
-                  </article>
-                ))}
+        {selectedView === 'topics' && selectedTopics.map((topic) => {
+          const topicKey = `${topics.indexOf(topic)}-${topic.name}`;
+          return (
+            <Reveal
+              as="details"
+              className="reviewer-topic"
+              key={topicKey}
+              open={expandedTopics[topicKey] ?? true}
+              onToggle={(event) => {
+                const isOpen = event.currentTarget.open;
+                setExpandedTopics((current) => (
+                  current[topicKey] === isOpen ? current : { ...current, [topicKey]: isOpen }
+                ));
+              }}
+            >
+              <summary className="reviewer-topic-toggle">
+                <h2>{topic.name}</h2>
+                <span className="reviewer-topic-chevron" aria-hidden="true">⌄</span>
+              </summary>
+              <div className="reviewer-topic-body">
+                <ul>
+                  {topic.bulletPoints.map((point, pointIndex) => <li key={pointIndex}>{point}</li>)}
+                </ul>
+                {topic.formulaExamples?.length > 0 && (
+                  <div className="reviewer-formulas">
+                    {topic.formulaExamples.map((entry, formulaIndex) => (
+                      <article className="reviewer-formula" key={`${entry.formula}-${formulaIndex}`}>
+                        <p className="reviewer-formula-label">Formula</p>
+                        <code>{entry.formula}</code>
+                        <p className="reviewer-formula-label">Worked example</p>
+                        {getWorkedExampleSteps(entry.workedExample).length ? (
+                          <ol className="reviewer-worked-steps">
+                            {getWorkedExampleSteps(entry.workedExample).map((step, stepIndex) => (
+                              <li key={stepIndex}>{step}</li>
+                            ))}
+                          </ol>
+                        ) : (
+                          <p className="reviewer-worked-example">{entry.workedExample}</p>
+                        )}
+                      </article>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </Reveal>
-        ))}
+            </Reveal>
+          );
+        })}
         {selectedView === 'people' && selectedPeople.map((person) => (
           <Reveal as="section" className="reviewer-topic" key={person}>
             <h2>{person}</h2>
