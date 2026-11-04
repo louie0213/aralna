@@ -81,7 +81,7 @@ export default function Quiz() {
       const result = await api.post(`/quizzes/${id}/attempts`, {
         answers: quiz.questions.map((question) => ({ questionId: question.id, answer: answers[question.id] ?? '' })),
       });
-      setSubmission(result.attempt);
+      setSubmission({ ...result.attempt, answerResults: result.answerResults });
       setAttempts((current) => [...current, result.attempt]);
       setAnswers({});
       window.sessionStorage.removeItem(`aralna_quiz_answers_${id}`);
@@ -136,10 +136,26 @@ export default function Quiz() {
       )}
       {error && <div className="alert" role="alert">{error}</div>}
       {submission && (
-        <div className="auth-notice" role="status">
-          Attempt {submission.attemptNumber} recorded: {submission.score} out of {submission.total}.
-          {remainingAttempts > 0 ? ` You have ${remainingAttempts} attempt${remainingAttempts === 1 ? '' : 's'} remaining.` : ' You have used all attempts.'}
-        </div>
+        <>
+          <div className="auth-notice" role="status">
+            Attempt {submission.attemptNumber} recorded: {submission.score} out of {submission.total}.
+            {remainingAttempts > 0 ? ` You have ${remainingAttempts} attempt${remainingAttempts === 1 ? '' : 's'} remaining.` : ' You have used all attempts.'}
+          </div>
+          {submission.answerResults && (
+            <ol className="quiz-answer-results" aria-label="Answer results">
+              {submission.answerResults.map(({ questionId, isCorrect }) => {
+                const resultQuestion = quiz.questions.find((item) => item.id === questionId);
+                return (
+                  <li className={isCorrect ? 'is-correct' : 'is-incorrect'} key={questionId}>
+                    <span className="quiz-answer-result-icon" aria-hidden="true">{isCorrect ? '+' : '!'}</span>
+                    <span>{resultQuestion?.prompt || 'Question result unavailable'}</span>
+                    <strong className="quiz-answer-result-label">{isCorrect ? 'Correct' : 'Incorrect'}</strong>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </>
       )}
       {user.role !== 'student' ? (
         <section className="panel"><p className="muted">Admin preview: students can take this quiz from their study space.</p></section>

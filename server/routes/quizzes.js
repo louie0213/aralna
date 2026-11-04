@@ -419,6 +419,7 @@ router.post('/:id/attempts', requireRole('student'), async (req, res, next) => {
     });
     res.status(201).json({
       attempt: { id: attempt.id, attemptNumber, score, total: attempt.total, createdAt: attempt.createdAt },
+      answerResults: answers.map(({ questionId, isCorrect }) => ({ questionId, isCorrect })),
       remainingAttempts: MAX_ATTEMPTS - attemptNumber,
     });
   } catch (err) {
