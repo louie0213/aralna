@@ -1,6 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
-import Reveal from '../components/Reveal.jsx';
+import {
+  Reveal,
+  StaggerGroup,
+  StaggerItem,
+  MagneticButton,
+} from '../components/motion';
 
 export default function StudentHome() {
   const { user } = useAuth();
@@ -9,11 +14,13 @@ export default function StudentHome() {
 
   return (
     <div className="student-dashboard">
-      <Reveal as="header" className="page-heading student-page-heading">
+      <Reveal as="header" className="page-heading student-page-heading" variant="fadeUp" immediate>
         <div>
           <p className="page-eyebrow">YOUR STUDY SPACE</p>
           <h1>Welcome back, {firstName}</h1>
-          <p className="page-description">Your notes are the starting point. Pick up where your next study session begins.</p>
+          <p className="page-description">
+            Your notes are the starting point. Pick up where your next study session begins.
+          </p>
         </div>
         <aside className="account-status" aria-label={`Account status: ${accountLabel}`}>
           <span className="account-status-label">ACCOUNT STATUS</span>
@@ -21,29 +28,55 @@ export default function StudentHome() {
         </aside>
       </Reveal>
 
-      <Reveal as="section" className="student-start" data-motion-ambient>
+      <Reveal
+        as="section"
+        className="student-start"
+        variant="scaleIn"
+        immediate
+        data-motion-ambient
+      >
         <div className="student-start-copy">
-          <Reveal as="p" className="page-eyebrow">A GOOD PLACE TO START</Reveal>
-          <Reveal as="h2" delay="70ms">Turn your class notes into a study guide.</Reveal>
-          <Reveal as="p" delay="140ms">Upload a document and build a focused reviewer with summaries, key terms, flashcards, and practice questions.</Reveal>
-          <Reveal as={Link} className="btn btn-primary student-start-action" to="/app/upload" delay="210ms">Upload notes <span aria-hidden="true">↗</span></Reveal>
+          <p className="page-eyebrow">A GOOD PLACE TO START</p>
+          <h2>Turn your class notes into a study guide.</h2>
+          <p>
+            Upload a document and build a focused reviewer with summaries, key terms, flashcards, and practice questions.
+          </p>
+          {/* Original Link restored; MagneticButton wraps it */}
+          <MagneticButton as="span" style={{ display: 'inline-flex' }}>
+            <Link className="btn btn-primary student-start-action" to="/app/upload">
+              Upload notes <span aria-hidden="true">↗</span>
+            </Link>
+          </MagneticButton>
         </div>
         <div className="student-start-index" aria-hidden="true"><span>01</span><i /></div>
       </Reveal>
 
-      <div className="student-dashboard-grid" data-reveal-group>
-        <Reveal as="section" className="student-info-card">
+      {/* Same grid host class as baseline; Motion stagger on card children */}
+      <StaggerGroup
+        className="student-dashboard-grid"
+        staggerChildren={0.14}
+        delayChildren={0.07}
+      >
+        <StaggerItem as="section" className="student-info-card">
           <div className="student-info-heading">
-            <div><p className="page-eyebrow">YOUR LIBRARY</p><h2>Study reviewers</h2></div>
+            <div>
+              <p className="page-eyebrow">YOUR LIBRARY</p>
+              <h2>Study reviewers</h2>
+            </div>
             <span className="student-info-mark" aria-hidden="true">02</span>
           </div>
           <p>Generated summaries, flashcards, and quizzes stay together here, ready for your next review.</p>
-          <Link className="text-action" to="/app/reviewers">Browse reviewers <span aria-hidden="true">↗</span></Link>
-        </Reveal>
+          <Link className="text-action" to="/app/reviewers">
+            Browse reviewers <span aria-hidden="true">↗</span>
+          </Link>
+        </StaggerItem>
 
-        <Reveal as="section" className="student-info-card account-card">
+        <StaggerItem as="section" className="student-info-card account-card">
           <div className="student-info-heading">
-            <div><p className="page-eyebrow">ACCOUNT DETAILS</p><h2>Your profile</h2></div>
+            <div>
+              <p className="page-eyebrow">ACCOUNT DETAILS</p>
+              <h2>Your profile</h2>
+            </div>
             <span className="student-info-mark" aria-hidden="true">03</span>
           </div>
           <dl className="profile-details">
@@ -51,8 +84,8 @@ export default function StudentHome() {
             <div><dt>Program</dt><dd>{user.program || 'Not set'}</dd></div>
             <div><dt>Email</dt><dd>{user.email}</dd></div>
           </dl>
-        </Reveal>
-      </div>
+        </StaggerItem>
+      </StaggerGroup>
     </div>
   );
 }

@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
-import Reveal from '../components/Reveal.jsx';
+import ConfirmDialog from '../components/ConfirmDialog.jsx';
+import {
+  Reveal,
+  StaggerGroup,
+  StaggerItem,
+  MagneticButton,
+} from '../components/motion';
 
 const fmt = (d) => new Date(d).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
 const yearOf = (d) => new Date(d).getFullYear();
@@ -13,6 +19,7 @@ export default function Reviewers() {
   const [year, setYear] = useState('all');
   const [query, setQuery] = useState('');
   const [deletingId, setDeletingId] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   useEffect(() => {
     api
@@ -37,13 +44,14 @@ export default function Reviewers() {
 
   const readyCount = reviewers.filter((reviewer) => reviewer.status === 'ready').length;
 
-  async function deleteReviewer(reviewer) {
-    if (!window.confirm(`Delete "${reviewer.documentName}"? This cannot be undone.`)) return;
-    setDeletingId(reviewer.id);
+  async function deleteReviewer() {
+    if (!pendingDelete) return;
+    setDeletingId(pendingDelete.id);
     setError('');
     try {
-      await api.delete(`/reviewers/${reviewer.id}`);
-      setReviewers((current) => current.filter((item) => item.id !== reviewer.id));
+      await api.delete(`/reviewers/${pendingDelete.id}`);
+      setReviewers((current) => current.filter((item) => item.id !== pendingDelete.id));
+      setPendingDelete(null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -53,7 +61,8 @@ export default function Reviewers() {
 
   return (
     <section className="reviewer-library">
-      <Reveal as="header" className="reviewer-library-header">
+      {/* Header — supporting rise */}
+      <Reveal as="header" className="reviewer-library-header" variant="fadeUp">
         <div>
           <p className="page-eyebrow">YOUR STUDY LIBRARY</p>
           <h1>Your reviewers</h1>
@@ -70,7 +79,7 @@ export default function Reviewers() {
       </Reveal>
       {error && <div className="alert" role="alert">{error}</div>}
       {!loading && reviewers.length > 0 && (
-        <div className="reviewer-library-toolbar">
+        <Reveal className="reviewer-library-toolbar" variant="fadeUp" delay={0.09}>
           <label className="reviewer-search">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 4.5 4.5" /></svg>
             <input
@@ -93,31 +102,39 @@ export default function Reviewers() {
           <span className="reviewer-library-result-count">
             {visible.length} {visible.length === 1 ? 'reviewer' : 'reviewers'}
           </span>
-        </div>
+        </Reveal>
       )}
       {loading ? (
         <p className="page-status">Loading...</p>
       ) : reviewers.length === 0 ? (
-        <section className="reviewer-library-empty">
+        <Reveal as="section" className="reviewer-library-empty" variant="scaleIn">
           <span className="reviewer-empty-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v18H7.5A2.5 2.5 0 0 1 5 17.5z" /><path d="M5 17.5A2.5 2.5 0 0 1 7.5 15H20M9 7h7m-7 4h7" /></svg>
           </span>
           <h2>Your library starts here</h2>
           <p>Upload a document and turn your notes into a study-ready reviewer.</p>
-          <Link className="btn btn-primary reviewer-empty-action" to="/app/upload">Upload a document</Link>
-        </section>
+          <MagneticButton as={Link} className="btn btn-primary reviewer-empty-action" to="/app/upload">
+            Upload a document
+          </MagneticButton>
+        </Reveal>
       ) : visible.length === 0 ? (
-        <section className="reviewer-library-empty reviewer-library-empty-compact">
+        <Reveal as="section" className="reviewer-library-empty reviewer-library-empty-compact" variant="fadeUp">
           <h2>No matches found</h2>
           <p>Try another title or change the year filter.</p>
           <button className="btn btn-ghost reviewer-empty-action" type="button" onClick={() => { setQuery(''); setYear('all'); }}>
             Clear filters
           </button>
-        </section>
+        </Reveal>
       ) : (
-        <ul className="reviewer-library-list" data-reveal-group>
+        /* List — focal: staggered cards */
+        <StaggerGroup
+          as="ul"
+          className="reviewer-library-list"
+          staggerChildren={0.09}
+          delayChildren={0.06}
+        >
           {visible.map((r) => (
-            <Reveal as="li" key={r.id} className="reviewer-library-item">
+            <StaggerItem as="li" key={r.id} className="reviewer-library-item">
               <Link className="reviewer-library-card" to={`/app/reviewers/${r.id}`}>
                 <span className="reviewer-library-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v18H7.5A2.5 2.5 0 0 1 5 17.5z" /><path d="M5 17.5A2.5 2.5 0 0 1 7.5 15H20M9 7h7m-7 4h7" /></svg>
@@ -146,15 +163,25 @@ export default function Reviewers() {
                 className="btn btn-ghost reviewer-library-delete"
                 type="button"
                 disabled={Boolean(deletingId)}
-                onClick={() => deleteReviewer(r)}
+                onClick={() => setPendingDelete(r)}
                 aria-label={`Delete ${r.documentName}`}
               >
                 {deletingId === r.id ? 'Deleting...' : 'Delete'}
               </button>
-            </Reveal>
+            </StaggerItem>
           ))}
-        </ul>
+        </StaggerGroup>
       )}
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        eyebrow="STUDY LIBRARY"
+        title={pendingDelete ? `Delete "${pendingDelete.documentName}"?` : 'Delete reviewer?'}
+        message="This cannot be undone."
+        confirmLabel="Delete"
+        busy={Boolean(deletingId)}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={deleteReviewer}
+      />
     </section>
   );
 }

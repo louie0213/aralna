@@ -1,0 +1,283 @@
+/* AralNa logo — light/dark + Screenshot 2026-11-06 hard 3D shadow */
+
+.logo {
+  --logo-hover-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --logo-hover-duration: 280ms;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42em;
+  padding-right: 0.85em;
+  padding-bottom: 0.08em;
+  overflow: visible;
+  color: inherit;
+  line-height: 1;
+  text-decoration: none;
+  vertical-align: middle;
+}
+
+/* --- Light UI (cream paper) --- */
+.logo--light {
+  --logo-shadow: #1a2238;
+  --logo-badge: #232c4b;
+  --logo-badge-rim: #fff8ea;
+  --logo-badge-stroke: #1a2238;
+  --logo-book: #fff8ea;
+  --logo-book-detail: #232c4b;
+  --logo-eye: #232c4b;
+  --logo-aral: #232c4b;
+  --logo-aral-hover: #c9a227;
+  --logo-na-fill: #f6d365;
+  --logo-na-rim: #fff8ea;
+  --logo-na-text: #232c4b;
+  --logo-na-outline: #1a2238;
+  --logo-na-shadow: #1a2238;
+  --logo-sparkle: #f6d365;
+  --logo-sparkle-side: #ffe08a;
+  --logo-glint: #f6d365;
+}
+
+/* --- Dark UI (navy) — Screenshot reference --- */
+.logo--dark {
+  --logo-shadow: #ff8a6b;
+  --logo-badge: #f6d365;
+  --logo-badge-rim: #fff8ea;
+  --logo-badge-stroke: #1a2238;
+  --logo-book: #fff8ea;
+  --logo-book-detail: #232c4b;
+  --logo-eye: #232c4b;
+  --logo-aral: #fff8ea;
+  --logo-aral-hover: #f6d365;
+  --logo-na-fill: #f6d365;
+  --logo-na-rim: #fff8ea;
+  --logo-na-text: #232c4b;
+  --logo-na-outline: #1a2238;
+  --logo-na-shadow: #ff8a6b;
+  --logo-sparkle: #ff8a6b;
+  --logo-sparkle-side: #232c4b;
+  --logo-glint: #f6d365;
+}
+
+.logo--sm { font-size: 1.05rem; }
+.logo--md { font-size: 1.28rem; }
+.logo--lg { font-size: 1.55rem; }
+
+.logo__badge {
+  display: block;
+  flex: 0 0 auto;
+  width: 1.75em;
+  height: 1.75em;
+  overflow: visible;
+  transform-origin: center;
+  transition: transform var(--logo-hover-duration) var(--logo-hover-ease);
+}
+
+.logo .logo-mark__shadow {
+  fill: var(--logo-shadow);
+}
+
+.logo__badge-rim {
+  fill: var(--logo-badge-rim);
+}
+
+.logo__badge-fill {
+  fill: var(--logo-badge);
+  stroke: var(--logo-badge-stroke);
+  stroke-width: 2.8;
+  paint-order: stroke fill;
+}
+
+.logo__book {
+  fill: var(--logo-book);
+  stroke: var(--logo-book-detail);
+  stroke-width: 3.2;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+}
+
+.logo__book-detail {
+  fill: none;
+  stroke: var(--logo-book-detail);
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.55;
+}
+
+.logo__eye { fill: var(--logo-eye); }
+
+.logo__smile {
+  fill: none;
+  stroke: var(--logo-eye);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logo__sparkle {
+  fill: var(--logo-sparkle);
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform var(--logo-hover-duration) var(--logo-hover-ease);
+}
+
+.logo__sparkle--side { fill: var(--logo-sparkle-side); }
+
+.logo__glint {
+  position: absolute;
+  z-index: 2;
+  top: -0.42em;
+  left: auto;
+  right: -0.45em;
+  display: block;
+  width: 0.72em;
+  height: 0.72em;
+  overflow: visible;
+  pointer-events: none;
+  color: var(--logo-glint);
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  animation: logo-glint-twinkle 4.8s ease-in-out infinite;
+}
+
+.logo__glint path {
+  fill: currentColor;
+}
+
+.logo__wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.08em;
+  font-family: var(--font-head, inherit);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+
+.logo__aral {
+  color: var(--logo-aral);
+  transition: color var(--logo-hover-duration) var(--logo-hover-ease);
+}
+
+.logo__na {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.06em 0.2em 0.08em;
+  color: var(--logo-na-text);
+  background: var(--logo-na-fill);
+  border: 0.07em solid var(--logo-na-outline);
+  border-radius: 0.3em;
+  line-height: 1.05;
+  /* cream rim + hard coral/ink offset — matches screenshot stack */
+  box-shadow:
+    0 0 0 0.06em var(--logo-na-rim),
+    0.08em 0.07em 0 var(--logo-na-shadow);
+  transform-origin: center;
+  transition:
+    transform var(--logo-hover-duration) var(--logo-hover-ease),
+    box-shadow var(--logo-hover-duration) var(--logo-hover-ease);
+}
+
+.logo--icon {
+  padding-right: 0.55em;
+  padding-bottom: 0;
+}
+
+.logo--icon .logo__wordmark {
+  display: none;
+}
+
+.logo--icon .logo__glint {
+  top: -0.38em;
+  left: auto;
+  right: -0.35em;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  a:hover .logo .logo__badge,
+  a:focus-visible .logo .logo__badge,
+  .logo:hover .logo__badge {
+    transform: rotate(-8deg) scale(1.06);
+  }
+
+  a:hover .logo .logo__sparkle--main,
+  a:focus-visible .logo .logo__sparkle--main,
+  .logo:hover .logo__sparkle--main {
+    animation: logo-sparkle 800ms var(--logo-hover-ease) both;
+  }
+
+  a:hover .logo .logo__aral,
+  a:focus-visible .logo .logo__aral,
+  .logo:hover .logo__aral {
+    color: var(--logo-aral-hover);
+  }
+
+  a:hover .logo .logo__na,
+  a:focus-visible .logo .logo__na,
+  .logo:hover .logo__na {
+    transform: translateY(-0.08em) scale(1.04);
+    box-shadow:
+      0 0 0 0.06em var(--logo-na-rim),
+      0.1em 0.09em 0 var(--logo-na-shadow);
+  }
+
+  a:hover .logo .logo__sparkle--side,
+  a:focus-visible .logo .logo__sparkle--side,
+  .logo:hover .logo__sparkle--side {
+    transform: rotate(-12deg) scale(1.1);
+  }
+}
+
+@keyframes logo-sparkle {
+  0% { transform: rotate(0) scale(1); }
+  55% { transform: rotate(18deg) scale(1.18); }
+  100% { transform: rotate(0) scale(1); }
+}
+
+@keyframes logo-glint-twinkle {
+  0%, 12% {
+    opacity: 0;
+    transform: rotate(-6deg) scale(0.4);
+  }
+  28% {
+    opacity: 1;
+    transform: rotate(10deg) scale(1.2);
+  }
+  42% {
+    opacity: 1;
+    transform: rotate(4deg) scale(1.05);
+  }
+  58%, 100% {
+    opacity: 0;
+    transform: rotate(-4deg) scale(0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo__badge,
+  .logo__sparkle,
+  .logo__glint,
+  .logo__aral,
+  .logo__na {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .logo__glint {
+    opacity: 0.9;
+    transform: none;
+  }
+
+  a:hover .logo .logo__badge,
+  a:focus-visible .logo .logo__badge,
+  .logo:hover .logo__badge,
+  a:hover .logo .logo__na,
+  a:focus-visible .logo .logo__na,
+  .logo:hover .logo__na,
+  a:hover .logo .logo__sparkle--side,
+  a:focus-visible .logo .logo__sparkle--side,
+  .logo:hover .logo__sparkle--side {
+    transform: none;
+  }
+}

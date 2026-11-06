@@ -1,6 +1,6 @@
 .shell-admin, .shell-student {
   --shell-sidebar-width: 272px;
-  --shell-sidebar-transition-duration: 420ms;
+  --shell-sidebar-transition-duration: 520ms;
   --shell-sidebar-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
   overflow-x: clip;
   min-height: 100vh;
@@ -36,10 +36,13 @@
   color: var(--ink);
   text-decoration: none;
 }
-.admin-brand-mark { display: block; flex: 0 0 auto; width: 38px; height: 38px; }
-.admin-brand-wordmark { color: var(--ink); font-family: var(--font-head); font-size: 1.65rem; font-weight: 700; line-height: 1; }
-.admin-brand-wordmark .brand-wordmark__token { color: var(--doodle-coral); }
-.admin-brand-doodle { position: absolute; top: -5px; left: 147px; width: 20px; height: 20px; fill: var(--doodle-yellow); stroke: var(--ink); stroke-width: 1.2; stroke-linejoin: round; }
+.admin-sidebar-brand .logo { font-size: 1.35rem; }
+.admin-mobile-brand .logo { font-size: 1.1rem; }
+.admin-sidebar-brand .logo__badge,
+.admin-mobile-brand .logo__badge {
+  width: 1.75em;
+  height: 1.75em;
+}
 
 .admin-sidebar-close { display: none; }
 
@@ -163,8 +166,9 @@
   }
   .admin-sidebar-heading { width: 100%; align-items: center; gap: 10px; }
   .admin-sidebar-brand { min-height: 42px; }
-  .admin-brand-mark { width: 40px; height: 40px; }
-  .admin-brand-wordmark, .admin-brand-doodle { display: none; }
+  .admin-sidebar-brand .logo { font-size: 1.15rem; padding-right: 0; }
+  .admin-sidebar-brand .logo__wordmark { display: none; }
+  .admin-sidebar-brand .logo__badge { width: 36px; height: 36px; }
   .admin-navigation { width: 100%; overflow: visible; }
   .admin-navigation ul { align-items: center; }
   .admin-navigation a, .admin-navigation .quiz-locked-nav-item { width: 54px; min-height: 46px; justify-content: center; padding: 0; }
@@ -270,8 +274,7 @@
   }
   .admin-mobile-menu-toggle:hover, .admin-sidebar-close:hover { background: color-mix(in srgb, var(--doodle-yellow) 22%, var(--paper)); }
   .admin-mobile-brand { min-width: 0; }
-  .admin-mobile-brand .admin-brand-mark { width: 34px; height: 34px; }
-  .admin-mobile-brand .admin-brand-wordmark { font-size: 1.45rem; }
+  .admin-mobile-brand .logo { font-size: 1.05rem; }
   .shell-admin .admin-sidebar, .shell-student .admin-sidebar {
     z-index: 100;
     inset: 0 auto 0 0;
@@ -294,8 +297,9 @@
     transition-delay: 0s;
   }
   .admin-sidebar-heading { width: 100%; align-items: flex-start; }
-  .admin-brand-wordmark, .admin-brand-doodle { display: block; }
-  .admin-brand-doodle { left: 147px; }
+  .admin-sidebar-brand .logo { font-size: 1.35rem; padding-right: 0; }
+  .admin-sidebar-brand .logo__wordmark { display: inline-flex; }
+  .admin-sidebar-brand .logo__badge { width: 1.75em; height: 1.75em; }
   .admin-sidebar-close { position: absolute; top: 0; right: 0; }
   .admin-navigation { width: auto; flex: 1 1 auto; overflow: auto; }
   .admin-navigation ul { align-items: stretch; }

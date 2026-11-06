@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import AuthLayout from '../components/AuthLayout.jsx';
 import Field from '../components/Field.jsx';
+import { MagneticButton, StaggerGroup, StaggerItem } from '../components/motion';
 import ServerWaitingCard from '../components/ServerWaitingCard.jsx';
 import { useServerStatus } from '../useServerStatus.js';
 
@@ -59,24 +60,41 @@ export default function Register() {
       {(serverStatus === 'waking' || serverStatus === 'failed') && (
         <ServerWaitingCard status={serverStatus} onRetry={submitRegistration} />
       )}
-      <h1>Create your student account</h1>
-      <p className="auth-sub">Enter your details below to create your student account.</p>
-      {error && <div className="alert" role="alert">{error}</div>}
-      <form onSubmit={onSubmit} noValidate>
-        <div className="grid-2">
-          <Field label="Name" name="fullName" autoComplete="name" value={form.fullName} onChange={onChange} error={errors.fullName} />
-          <Field label="Program (optional)" name="program" placeholder="BSIT" value={form.program} onChange={onChange} />
-        </div>
-        <Field label="Email" name="email" type="email" autoComplete="email" value={form.email} onChange={onChange} error={errors.email} />
-        <div className="grid-2">
-          <Field label="Password" name="password" type="password" autoComplete="new-password" value={form.password} onChange={onChange} error={errors.password} />
-          <Field label="Confirm password" name="confirm" type="password" autoComplete="new-password" value={form.confirm} onChange={onChange} error={errors.confirm} />
-        </div>
-        <button className="btn btn-primary" disabled={busy || serverStatus === 'waking'}>
-          {serverStatus === 'waking' ? 'Waiting for server...' : busy ? 'Creating account...' : 'Create account'}
-        </button>
-      </form>
-      <p className="auth-switch">Already registered? <Link to="/login">Log in</Link></p>
+
+      {/* Form body — supporting stagger inside the card scale-in */}
+      <StaggerGroup staggerChildren={0.09} delayChildren={0.06}>
+        <StaggerItem as="h1">Create your student account</StaggerItem>
+        <StaggerItem as="p" className="auth-sub">
+          Enter your details below to create your student account.
+        </StaggerItem>
+        {error && (
+          <StaggerItem as="div" className="alert" role="alert">
+            {error}
+          </StaggerItem>
+        )}
+        <StaggerItem as="form" onSubmit={onSubmit} noValidate>
+          <div className="grid-2">
+            <Field label="Name" name="fullName" autoComplete="name" value={form.fullName} onChange={onChange} error={errors.fullName} />
+            <Field label="Program (optional)" name="program" placeholder="BSIT" value={form.program} onChange={onChange} />
+          </div>
+          <Field label="Email" name="email" type="email" autoComplete="email" value={form.email} onChange={onChange} error={errors.email} />
+          <div className="grid-2">
+            <Field label="Password" name="password" type="password" autoComplete="new-password" value={form.password} onChange={onChange} error={errors.password} />
+            <Field label="Confirm password" name="confirm" type="password" autoComplete="new-password" value={form.confirm} onChange={onChange} error={errors.confirm} />
+          </div>
+          <MagneticButton
+            as="button"
+            type="submit"
+            className="btn btn-primary"
+            disabled={busy || serverStatus === 'waking'}
+          >
+            {serverStatus === 'waking' ? 'Waiting for server...' : busy ? 'Creating account...' : 'Create account'}
+          </MagneticButton>
+        </StaggerItem>
+        <StaggerItem as="p" className="auth-switch">
+          Already registered? <Link to="/login">Log in</Link>
+        </StaggerItem>
+      </StaggerGroup>
     </AuthLayout>
   );
 }

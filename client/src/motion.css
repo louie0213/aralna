@@ -1,15 +1,15 @@
 :root {
   --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --motion-hover-ease: ease-out;
-  --motion-duration-hover: 180ms;
-  --motion-duration-page: 210ms;
-  --motion-duration-reveal: 420ms;
-  --motion-duration-modal: 240ms;
-  --motion-duration-accordion: 180ms;
-  --motion-duration-progress: 200ms;
-  --motion-duration-auth: 380ms;
-  --motion-duration-sparkle: 600ms;
-  --motion-duration-reveal-lite: 320ms;
+  --motion-duration-hover: 240ms;
+  --motion-duration-page: 320ms;
+  --motion-duration-reveal: 580ms;
+  --motion-duration-modal: 340ms;
+  --motion-duration-accordion: 240ms;
+  --motion-duration-progress: 260ms;
+  --motion-duration-auth: 520ms;
+  --motion-duration-sparkle: 800ms;
+  --motion-duration-reveal-lite: 440ms;
   --motion-distance-route: 8px;
   --motion-distance-route-negative: -8px;
   --motion-distance-modal: 10px;
@@ -27,11 +27,11 @@
   --motion-modal-scale-start: 0.98;
   --motion-modal-scale-exit: 0.985;
   --motion-navbar-scale: 0.96;
-  --motion-stagger-1: 55ms;
-  --motion-stagger-2: 110ms;
-  --motion-stagger-3: 165ms;
-  --motion-stagger-4: 220ms;
-  --motion-stagger-5: 275ms;
+  --motion-stagger-1: 75ms;
+  --motion-stagger-2: 150ms;
+  --motion-stagger-3: 225ms;
+  --motion-stagger-4: 300ms;
+  --motion-stagger-5: 375ms;
 }
 
 body { transition: none; }
@@ -185,15 +185,18 @@ body { transition: none; }
   100% { transform: rotate(0) scale(1); }
 }
 
+/* Scroll-linked nav shrink only on fine pointers — avoids jank/shake on touch refresh */
 @supports (animation-timeline: scroll()) {
-  .landing-nav {
-    animation: navbar-scroll-shrink linear both;
-    animation-timeline: scroll(root block);
-    animation-range: 0 160px;
-    transform-origin: top center;
-  }
-  @keyframes navbar-scroll-shrink {
-    to { transform: scaleY(var(--motion-navbar-scale)); }
+  @media (hover: hover) and (pointer: fine) and (min-width: 901px) {
+    .landing-nav {
+      animation: navbar-scroll-shrink linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 160px;
+      transform-origin: top center;
+    }
+    @keyframes navbar-scroll-shrink {
+      to { transform: scaleY(var(--motion-navbar-scale)); }
+    }
   }
 }
 
@@ -244,7 +247,7 @@ body { transition: none; }
 
 @media (max-width: 700px) {
   :root {
-    --motion-duration-auth: 300ms;
+    --motion-duration-auth: 420ms;
     --motion-distance-auth: 4px;
   }
 }
@@ -272,6 +275,16 @@ html[data-motion-lite='true'] [data-motion-ambient]::before,
 html[data-motion-lite='true'] [data-motion-ambient]::after {
   animation: none !important;
 }
+/* Keep brand glint twinkle even on lite / ambient surfaces */
+html[data-motion-lite='true'] .logo__glint,
+html[data-motion-lite='true'] [data-motion-ambient] .logo__glint,
+[data-motion-ambient] .logo__glint {
+  animation: logo-glint-twinkle 4.8s ease-in-out infinite !important;
+}
+html[data-motion-hidden='true'] .logo__glint,
+html[data-motion-hidden='true'] [data-motion-ambient] .logo__glint {
+  animation-play-state: running !important;
+}
 html[data-motion-lite='true'] [data-reveal] {
   transition-duration: var(--motion-duration-reveal-lite);
 }
@@ -294,6 +307,11 @@ html[data-motion-lite='true'] [data-reveal] {
   [data-motion-ambient]::before,
   [data-motion-ambient]::after {
     animation: none !important;
+  }
+  [data-motion-ambient] .logo__glint {
+    animation: none !important;
+    opacity: 0.9 !important;
+    transform: none !important;
   }
   .btn:hover:not(:disabled),
   .btn:active:not(:disabled),

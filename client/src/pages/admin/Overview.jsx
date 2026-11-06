@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../api.js';
-import Reveal from '../../components/Reveal.jsx';
+import { Reveal, StaggerGroup, StaggerItem } from '../../components/motion';
+import { stagger } from '../../lib/motion.js';
 
 function Stat({ label, value, note }) {
   return (
-    <Reveal as="article" className="metric-card">
+    <StaggerItem as="article" className="metric-card">
       <div className="metric-label">{label}</div>
       <div className="metric-value">{value}</div>
       {note && <p className="metric-note">{note}</p>}
-    </Reveal>
+    </StaggerItem>
   );
 }
 
@@ -51,7 +52,7 @@ export default function Overview() {
 
   return (
     <div className="admin-dashboard">
-      <Reveal as="header" className="page-heading">
+      <Reveal as="header" className="page-heading" variant="fadeUp">
         <div>
           <p className="page-eyebrow">ADMIN WORKSPACE</p>
           <h1>Overview</h1>
@@ -62,15 +63,19 @@ export default function Overview() {
 
       {error && <div className="alert" role="alert">{error}</div>}
 
-      <div className="metrics-grid" data-reveal-group>
+      <StaggerGroup
+        className="metrics-grid"
+        staggerChildren={stagger.tight}
+        delayChildren={stagger.tight}
+      >
         <Stat label="Quizzes generated" value={generations.quizzes} note={`${generations.quizzesLast7Days} in the last 7 days`} />
         <Stat label="Online users" value={users.onlineUsers} note="Live presence · refreshes every 30 seconds" />
         <Stat label="Active students" value={users.activeStudents} note="Used the app in the last 7 days" />
         <Stat label="Registered students" value={users.students} note={`${users.admins} admin${users.admins === 1 ? '' : 's'}`} />
         <Stat label="Suspended accounts" value={users.disabled} />
-      </div>
+      </StaggerGroup>
 
-      <Reveal as="section" className="panel topics-panel">
+      <Reveal as="section" className="panel topics-panel" variant="fadeUp">
         <div className="section-heading">
           <div>
             <p className="page-eyebrow">STUDY ACTIVITY</p>

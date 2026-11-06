@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
-import BrandMark from './BrandMark.jsx';
-import BrandWordmark from './BrandWordmark.jsx';
+import Logo from './Logo.jsx';
 import PageBack from './PageBack.jsx';
 import ProfileAvatar from './ProfileAvatar.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
@@ -119,9 +118,8 @@ export default function StudentLayout() {
             {mobileMenuOpen ? <path d="m6 6 12 12M18 6 6 18" /> : <path d="M4 6h16M4 12h16M4 18h16" />}
           </svg>
         </button>
-        <Link className="admin-mobile-brand" to="/">
-          <BrandMark className="admin-brand-mark" />
-          <BrandWordmark className="admin-brand-wordmark" />
+        <Link className="admin-mobile-brand" to="/" aria-label="AralNa home">
+          <Logo size="md" />
         </Link>
       </header>
 
@@ -136,12 +134,8 @@ export default function StudentLayout() {
         inert={isMobile && !mobileMenuOpen ? '' : undefined}
       >
         <div className="admin-sidebar-heading">
-          <Link className="admin-sidebar-brand" to="/" onClick={closeMenu}>
-            <BrandMark className="admin-brand-mark" />
-            <BrandWordmark className="admin-brand-wordmark" />
-            <svg className="admin-brand-doodle" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 2.5c1.2 4.2 2.1 5.1 6.5 6.3-4.4 1.2-5.3 2.1-6.5 6.4-1.2-4.3-2.1-5.2-6.5-6.4 4.4-1.2 5.3-2.1 6.5-6.3Z" />
-            </svg>
+          <Link className="admin-sidebar-brand" to="/" onClick={closeMenu} aria-label="AralNa home">
+            <Logo size="lg" />
           </Link>
           <button className="admin-sidebar-close" type="button" aria-label="Close app navigation" onClick={closeMenu}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>

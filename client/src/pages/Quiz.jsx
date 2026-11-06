@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, m } from 'motion/react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import { api } from '../api.js';
-import Reveal from '../components/Reveal.jsx';
+import { Reveal, MagneticButton } from '../components/motion';
+import { useMotionConfig } from '../lib/motion.js';
 
 const fmtDate = (date) => new Date(date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -11,6 +13,7 @@ export default function Quiz() {
   const { user, activeQuizId, startQuizSession, endQuizSession } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { variants } = useMotionConfig();
   const [quiz, setQuiz] = useState(null);
   const [answers, setAnswers] = useState({});
   const [attempts, setAttempts] = useState([]);
@@ -134,7 +137,7 @@ export default function Quiz() {
   return (
     <div className="quiz-taking-page">
       {activeQuizId !== id && <Link className="text-action quiz-back-link" to="/app/quizzes">← All quizzes</Link>}
-      <Reveal as="header" className="page-heading">
+      <Reveal as="header" className="page-heading" variant="fadeUp">
         <div>
           <p className="page-eyebrow">ASSESSMENT · {quiz.questions.length} QUESTIONS</p>
           <h1>{quiz.title}</h1>
@@ -154,7 +157,7 @@ export default function Quiz() {
       )}
       {error && <div className="alert" role="alert">{error}</div>}
       {submission && (
-        <>
+        <Reveal variant="scaleIn">
           <div className="auth-notice" role="status">
             Attempt {submission.attemptNumber} recorded: {submission.score} out of {submission.total}.
             {remainingAttempts > 0 ? ` You have ${remainingAttempts} attempt${remainingAttempts === 1 ? '' : 's'} remaining.` : ' You have used all attempts.'}
@@ -173,42 +176,54 @@ export default function Quiz() {
               })}
             </ol>
           )}
-        </>
+        </Reveal>
       )}
       {user.role !== 'student' ? (
-        <section className="panel"><p className="muted">Admin preview: students can take this quiz from their study space.</p></section>
+        <Reveal as="section" className="panel" variant="fadeUp">
+          <p className="muted">Admin preview: students can take this quiz from their study space.</p>
+        </Reveal>
       ) : remainingAttempts > 0 && attemptStarted ? (
-        <form ref={attemptFormRef} className="quiz-taking-form" onSubmit={submit} data-reveal-group>
-          <Reveal as="section" className="panel quiz-student-question" key={question.id}>
-            <p className="page-eyebrow">QUESTION {questionIndex + 1} · {question.type.replace('-', ' ').toUpperCase()}</p>
-            <h2>{question.prompt}</h2>
-            {question.type === 'multiple-choice' && (
-              <div className="quiz-answer-options">
-                {question.choices.map((choice) => (
-                  <label className="quiz-answer-option" key={choice}>
-                    <input type="radio" name={`question-${question.id}`} value={choice} checked={answers[question.id] === choice} onChange={() => updateAnswer(question.id, choice)} required />
-                    <span>{choice}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-            {question.type === 'identification' && (
-              <label className="quiz-label">
-                Your answer
-                <input className="quiz-input" maxLength={2000} value={answers[question.id] || ''} onChange={(e) => updateAnswer(question.id, e.target.value)} required />
-              </label>
-            )}
-            {question.type === 'true-false' && (
-              <div className="quiz-answer-options quiz-true-false">
-                {['true', 'false'].map((value) => (
-                  <label className="quiz-answer-option" key={value}>
-                    <input type="radio" name={`question-${question.id}`} value={value} checked={answers[question.id] === value} onChange={() => updateAnswer(question.id, value)} required />
-                    <span>{value === 'true' ? 'True' : 'False'}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </Reveal>
+        <form ref={attemptFormRef} className="quiz-taking-form" onSubmit={submit}>
+          {/* Question panel — focal: slide between questions */}
+          <AnimatePresence mode="wait" initial={false}>
+            <m.section
+              key={question.id}
+              className="panel quiz-student-question"
+              variants={variants.slideInX}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <p className="page-eyebrow">QUESTION {questionIndex + 1} · {question.type.replace('-', ' ').toUpperCase()}</p>
+              <h2>{question.prompt}</h2>
+              {question.type === 'multiple-choice' && (
+                <div className="quiz-answer-options">
+                  {question.choices.map((choice) => (
+                    <label className="quiz-answer-option" key={choice}>
+                      <input type="radio" name={`question-${question.id}`} value={choice} checked={answers[question.id] === choice} onChange={() => updateAnswer(question.id, choice)} required />
+                      <span>{choice}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+              {question.type === 'identification' && (
+                <label className="quiz-label">
+                  Your answer
+                  <input className="quiz-input" maxLength={2000} value={answers[question.id] || ''} onChange={(e) => updateAnswer(question.id, e.target.value)} required />
+                </label>
+              )}
+              {question.type === 'true-false' && (
+                <div className="quiz-answer-options quiz-true-false">
+                  {['true', 'false'].map((value) => (
+                    <label className="quiz-answer-option" key={value}>
+                      <input type="radio" name={`question-${question.id}`} value={value} checked={answers[question.id] === value} onChange={() => updateAnswer(question.id, value)} required />
+                      <span>{value === 'true' ? 'True' : 'False'}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </m.section>
+          </AnimatePresence>
           <div className="quiz-step-bar">
             <div className="quiz-step-progress">
               <div className="quiz-step-progress-label">
@@ -237,33 +252,35 @@ export default function Quiz() {
                 Previous
               </button>
               {isLastQuestion ? (
-                <button className="btn btn-primary quiz-step-button" type="submit" disabled={submitting}>
+                <MagneticButton as="button" className="btn btn-primary quiz-step-button" type="submit" disabled={submitting}>
                   {submitting ? 'Submitting...' : 'Submit attempt'}
-                </button>
+                </MagneticButton>
               ) : (
-                <button className="btn btn-primary quiz-step-button" type="button" onClick={advanceQuestion} disabled={submitting}>
+                <MagneticButton as="button" className="btn btn-primary quiz-step-button" type="button" onClick={advanceQuestion} disabled={submitting}>
                   Next
-                </button>
+                </MagneticButton>
               )}
             </div>
           </div>
         </form>
       ) : remainingAttempts > 0 ? (
-        <section className="panel quiz-attempt-start">
+        <Reveal as="section" className="panel quiz-attempt-start" variant="scaleIn">
           <p className="muted">
             {submission
               ? `Your next attempt will be attempt ${attempts.length + 1} of 5. Confirm when you’re ready to begin.`
               : `You’re about to begin attempt ${attempts.length + 1} of 5. Your answers will be locked in until you submit.`}
           </p>
-          <button className="btn btn-primary quiz-submit" type="button" onClick={beginAttempt}>
+          <MagneticButton as="button" className="btn btn-primary quiz-submit" type="button" onClick={beginAttempt}>
             Start attempt {attempts.length + 1}
-          </button>
-        </section>
+          </MagneticButton>
+        </Reveal>
       ) : (
-        <section className="panel"><p className="muted">You have used all five attempts for this quiz.</p></section>
+        <Reveal as="section" className="panel" variant="fadeUp">
+          <p className="muted">You have used all five attempts for this quiz.</p>
+        </Reveal>
       )}
 
-      <Reveal as="section" className="quiz-history">
+      <Reveal as="section" className="quiz-history" variant="fadeUp">
         <div className="section-heading"><div><p className="page-eyebrow">YOUR RECORD</p><h2>Attempt history</h2></div></div>
         {attempts.length === 0 ? <p className="muted">No attempts submitted yet.</p> : (
           <ol className="quiz-history-list">

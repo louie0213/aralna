@@ -1,12 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { AnimatePresence, m } from 'motion/react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import { api } from '../api.js';
 import FlashcardStack from '../components/FlashcardStack.jsx';
 import InteractiveCodeConsole from '../components/InteractiveCodeConsole.jsx';
 import QuizLoader from '../components/QuizLoader.jsx';
-import Reveal from '../components/Reveal.jsx';
+import {
+  Reveal,
+  StaggerItem,
+  MagneticButton,
+} from '../components/motion';
+import { distance, stagger, useMotionConfig } from '../lib/motion.js';
 
 function getTopics(reviewer) {
   if (Array.isArray(reviewer.topics) && reviewer.topics.length) return reviewer.topics;
@@ -64,6 +70,7 @@ export default function Reviewer() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { variants } = useMotionConfig();
   const [reviewer, setReviewer] = useState(null);
   const [error, setError] = useState('');
   const [view, setView] = useState('topics');
@@ -318,7 +325,9 @@ export default function Reviewer() {
         </div>,
         document.body
       )}
-      <Reveal as="header" className="reviewer-header">
+
+      {/* Header — supporting rise */}
+      <Reveal as="header" className="reviewer-header" variant="fadeUp">
         <h1>{reviewer.documentName}</h1>
         <details className="reviewer-download-menu">
           <summary className="btn btn-ghost reviewer-download" aria-label="Choose download format">
@@ -339,7 +348,7 @@ export default function Reviewer() {
       {downloadError && <div className="alert" role="alert">{downloadError}</div>}
 
       {(topics.length > 0 || years.length > 0 || keyTerms.length > 0) && (
-        <Reveal className="toolbar reviewer-filter">
+        <Reveal className="toolbar reviewer-filter" variant="fadeUp" delay={0.08}>
           <span className="reviewer-filter-label">Show</span>
           <ReviewerFilterDropdown
             label="Reviewer view"
@@ -399,73 +408,108 @@ export default function Reviewer() {
         </Reveal>
       )}
 
-      <div className="reviewer-topics" data-reveal-group>
-        {selectedView === 'topics' && selectedTopics.map((topic) => {
-          const topicKey = `${topics.indexOf(topic)}-${topic.name}`;
-          return (
-            <Reveal
-              as="details"
-              className="reviewer-topic"
-              key={topicKey}
-              open={expandedTopics[topicKey] ?? true}
-              onToggle={(event) => {
-                const isOpen = event.currentTarget.open;
-                setExpandedTopics((current) => (
-                  current[topicKey] === isOpen ? current : { ...current, [topicKey]: isOpen }
-                ));
+      {/* Stable centered host (keep arrangement); Motion animates the inner panel */}
+      <div className="reviewer-topics">
+        <AnimatePresence mode="wait" initial={false}>
+          {selectedView === 'topics' ? (
+            <m.div
+              key={`topics-${selectedTopic}`}
+              style={{ display: 'grid', gap: '12px' }}
+              variants={{
+                hidden: { opacity: 0, y: distance.sm },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    staggerChildren: stagger.tight,
+                    delayChildren: stagger.tight,
+                  },
+                },
+                exit: variants.slideIn.exit,
               }}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
             >
-              <summary className="reviewer-topic-toggle">
-                <h2>{topic.name}</h2>
-                <span className="reviewer-topic-chevron" aria-hidden="true">⌄</span>
-              </summary>
-              <div className="reviewer-topic-body">
-                <ul>
-                  {topic.bulletPoints.map((point, pointIndex) => <li key={pointIndex}>{point}</li>)}
-                </ul>
-                {topic.formulaExamples?.length > 0 && (
-                  <div className="reviewer-formulas">
-                    {topic.formulaExamples.map((entry, formulaIndex) => (
-                      <article className="reviewer-formula" key={`${entry.formula}-${formulaIndex}`}>
-                        <p className="reviewer-formula-label">Formula</p>
-                        <code>{entry.formula}</code>
-                        <p className="reviewer-formula-label">Worked example</p>
-                        {getWorkedExampleSteps(entry.workedExample).length ? (
-                          <ol className="reviewer-worked-steps">
-                            {getWorkedExampleSteps(entry.workedExample).map((step, stepIndex) => (
-                              <li key={stepIndex}>{step}</li>
-                            ))}
-                          </ol>
-                        ) : (
-                          <p className="reviewer-worked-example">{entry.workedExample}</p>
-                        )}
-                      </article>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </Reveal>
-          );
-        })}
-        {selectedView === 'people' && selectedPeople.map((person) => (
-          <Reveal as="section" className="reviewer-topic" key={person}>
-            <h2>{person}</h2>
-          </Reveal>
-        ))}
-        {selectedView === 'people' && people.length === 0 && <p className="muted">No people were identified in this document.</p>}
-        {selectedView === 'years' && selectedTimeline.map((entry, index) => (
-          <Reveal as="section" className="reviewer-topic" key={`${entry.year}-${index}`}>
-            <h2>{entry.year}</h2>
-            <p>{entry.summary}</p>
-          </Reveal>
-        ))}
-        {selectedView === 'terms' && selectedKeyTerm && (
-          <Reveal as="section" className="reviewer-topic">
-            <h2>{selectedKeyTerm.term}</h2>
-            <p>{selectedKeyTerm.definition}</p>
-          </Reveal>
-        )}
-        {selectedView === 'topics' && topics.length === 0 && <p className="muted">No topic notes were generated for this document.</p>}
+              {selectedTopics.map((topic) => {
+                const topicKey = `${topics.indexOf(topic)}-${topic.name}`;
+                return (
+                  <StaggerItem
+                    as="details"
+                    className="reviewer-topic"
+                    key={topicKey}
+                    open={expandedTopics[topicKey] ?? true}
+                    onToggle={(event) => {
+                      const isOpen = event.currentTarget.open;
+                      setExpandedTopics((current) => (
+                        current[topicKey] === isOpen ? current : { ...current, [topicKey]: isOpen }
+                      ));
+                    }}
+                  >
+                    <summary className="reviewer-topic-toggle">
+                      <h2>{topic.name}</h2>
+                      <span className="reviewer-topic-chevron" aria-hidden="true">⌄</span>
+                    </summary>
+                    <div className="reviewer-topic-body">
+                      <ul>
+                        {topic.bulletPoints.map((point, pointIndex) => <li key={pointIndex}>{point}</li>)}
+                      </ul>
+                      {topic.formulaExamples?.length > 0 && (
+                        <div className="reviewer-formulas">
+                          {topic.formulaExamples.map((entry, formulaIndex) => (
+                            <article className="reviewer-formula" key={`${entry.formula}-${formulaIndex}`}>
+                              <p className="reviewer-formula-label">Formula</p>
+                              <code>{entry.formula}</code>
+                              <p className="reviewer-formula-label">Worked example</p>
+                              {getWorkedExampleSteps(entry.workedExample).length ? (
+                                <ol className="reviewer-worked-steps">
+                                  {getWorkedExampleSteps(entry.workedExample).map((step, stepIndex) => (
+                                    <li key={stepIndex}>{step}</li>
+                                  ))}
+                                </ol>
+                              ) : (
+                                <p className="reviewer-worked-example">{entry.workedExample}</p>
+                              )}
+                            </article>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </StaggerItem>
+                );
+              })}
+              {topics.length === 0 && <p className="muted">No topic notes were generated for this document.</p>}
+            </m.div>
+          ) : (
+            <m.div
+              key={`${selectedView}-${selectedPerson}-${selectedYear}-${selectedTerm}`}
+              style={{ display: 'grid', gap: '12px' }}
+              variants={variants.slideIn}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              {selectedView === 'people' && selectedPeople.map((person) => (
+                <Reveal as="section" className="reviewer-topic" key={person} variant="fadeUp">
+                  <h2>{person}</h2>
+                </Reveal>
+              ))}
+              {selectedView === 'people' && people.length === 0 && <p className="muted">No people were identified in this document.</p>}
+              {selectedView === 'years' && selectedTimeline.map((entry, index) => (
+                <Reveal as="section" className="reviewer-topic" key={`${entry.year}-${index}`} variant="fadeUp">
+                  <h2>{entry.year}</h2>
+                  <p>{entry.summary}</p>
+                </Reveal>
+              ))}
+              {selectedView === 'terms' && selectedKeyTerm && (
+                <Reveal as="section" className="reviewer-topic" variant="fadeUp">
+                  <h2>{selectedKeyTerm.term}</h2>
+                  <p>{selectedKeyTerm.definition}</p>
+                </Reveal>
+              )}
+            </m.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {reviewer.isProgrammingRelated === true && (
@@ -477,7 +521,7 @@ export default function Reviewer() {
       )}
 
       {flashcards.length > 0 && (
-        <Reveal as="section" className="reviewer-flashcards" aria-labelledby="reviewer-flashcards-title">
+        <Reveal as="section" className="reviewer-flashcards" variant="fadeUp" aria-labelledby="reviewer-flashcards-title">
           <div className="reviewer-flashcards-heading">
             <div>
               <p className="page-eyebrow">ACTIVE RECALL</p>
@@ -490,18 +534,24 @@ export default function Reviewer() {
       )}
 
       {user.role === 'student' && (
-        <>
-          <Reveal as="section" className="reviewer-quiz-cta">
-            <div>
-              <p className="page-eyebrow">READY TO CHECK YOUR UNDERSTANDING?</p>
-              <h2>Practice with this reviewer</h2>
-              <p>Generate a quiz from these notes. Your score is recorded, with up to five attempts.</p>
-            </div>
-            <button className="btn btn-primary" type="button" onClick={startPracticeQuiz} disabled={quizGeneration?.status === 'loading'}>
-              {quizGeneration?.status === 'loading' ? 'Preparing your quiz...' : 'Take practice quiz'} <span aria-hidden="true">↗</span>
+        <Reveal as="section" className="reviewer-quiz-cta" variant="scaleIn">
+          <div>
+            <p className="page-eyebrow">READY TO CHECK YOUR UNDERSTANDING?</p>
+            <h2>Practice with this reviewer</h2>
+            <p>Generate a quiz from these notes. Your score is recorded, with up to five attempts.</p>
+          </div>
+          <MagneticButton as="span" style={{ display: 'inline-flex' }}>
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={startPracticeQuiz}
+              disabled={quizGeneration?.status === 'loading'}
+            >
+              {quizGeneration?.status === 'loading' ? 'Preparing your quiz...' : 'Take practice quiz'}{' '}
+              <span aria-hidden="true">↗</span>
             </button>
-          </Reveal>
-        </>
+          </MagneticButton>
+        </Reveal>
       )}
     </>
   );

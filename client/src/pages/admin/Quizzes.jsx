@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../api.js';
+import ConfirmDialog from '../../components/ConfirmDialog.jsx';
 import QuizGeneratingLoader from '../../components/QuizGeneratingLoader.jsx';
 
 const newQuestion = () => ({ type: 'multiple-choice', prompt: '', choices: ['', ''], answer: '' });
@@ -106,6 +107,7 @@ export default function AdminQuizzes() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deletingQuizId, setDeletingQuizId] = useState('');
+  const [pendingDelete, setPendingDelete] = useState(null);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
 
@@ -237,20 +239,21 @@ export default function AdminQuizzes() {
     }
   }
 
-  async function deleteQuiz(quiz) {
-    if (!window.confirm(`Delete "${quiz.title}"? Students will lose access, and all scores for this quiz will be permanently deleted.`)) return;
+  async function deleteQuiz() {
+    if (!pendingDelete) return;
     setError('');
     setNotice('');
-    setDeletingQuizId(quiz.id);
+    setDeletingQuizId(pendingDelete.id);
     try {
-      await api.delete(`/quizzes/${quiz.id}`);
-      setQuizzes((current) => current.filter((item) => item.id !== quiz.id));
+      await api.delete(`/quizzes/${pendingDelete.id}`);
+      setQuizzes((current) => current.filter((item) => item.id !== pendingDelete.id));
       setResults((current) => {
         const updated = { ...current };
-        delete updated[quiz.id];
+        delete updated[pendingDelete.id];
         return updated;
       });
-      setNotice(`"${quiz.title}" and its attempt records were deleted.`);
+      setNotice(`"${pendingDelete.title}" and its attempt records were deleted.`);
+      setPendingDelete(null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -407,7 +410,7 @@ export default function AdminQuizzes() {
                       className="btn btn-ghost btn-small quiz-delete-action"
                       type="button"
                       disabled={deletingQuizId === quiz.id}
-                      onClick={() => deleteQuiz(quiz)}
+                      onClick={() => setPendingDelete(quiz)}
                     >
                       {deletingQuizId === quiz.id ? 'Deleting...' : 'Delete'}
                     </button>
@@ -415,16 +418,16 @@ export default function AdminQuizzes() {
                 </div>
                 {results[quiz.id] && (
                   <div className="table-wrap quiz-results">
-                    <table className="users-table">
+                    <table className="users-table quiz-results-table">
                       <thead><tr><th>Student</th><th>Email</th><th>Attempt</th><th>Score</th><th>Submitted</th></tr></thead>
                       <tbody>
                         {results[quiz.id].length === 0 ? <tr><td className="table-message" colSpan="5">No submissions yet.</td></tr> : results[quiz.id].map((attempt) => (
                           <tr key={attempt.id}>
-                            <td>{attempt.student?.fullName || 'Unknown student'}</td>
-                            <td>{attempt.student?.email || ''}</td>
-                            <td>{attempt.attemptNumber} of 5</td>
-                            <td>{attempt.score} / {attempt.total}</td>
-                            <td>{fmtDate(attempt.createdAt)}</td>
+                            <td data-label="Student">{attempt.student?.fullName || 'Unknown student'}</td>
+                            <td data-label="Email">{attempt.student?.email || ''}</td>
+                            <td data-label="Attempt">{attempt.attemptNumber} of 5</td>
+                            <td data-label="Score">{attempt.score} / {attempt.total}</td>
+                            <td data-label="Submitted">{fmtDate(attempt.createdAt)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -436,6 +439,16 @@ export default function AdminQuizzes() {
           </ul>
         )}
       </section>
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        eyebrow="ASSESSMENTS"
+        title={pendingDelete ? `Delete "${pendingDelete.title}"?` : 'Delete quiz?'}
+        message="Students will lose access, and all scores for this quiz will be permanently deleted."
+        confirmLabel="Delete quiz"
+        busy={Boolean(deletingQuizId)}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={deleteQuiz}
+      />
     </div>
   );
 }

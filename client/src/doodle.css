@@ -34,14 +34,14 @@
   --console-text: #f5ecdd;
   --console-error: #ffaaa0;
   --doodle-shadow: #d7cebe;
-  --logo-tile: #1f2a44;
+  --logo-tile: #f6d365;
   --logo-outline: #1f2a44;
   --logo-ink: #1f2a44;
   --logo-shadow: #1f2a44;
   --logo-book: #fffdf6;
   --logo-spark: #f6d365;
   --logo-pink: #ff8a6b;
-  --brand-token-background: #f6d365;
+  --brand-token-background: #ff8a6b;
   --brand-token-ink: #1f2a44;
   --brand-token-outline: #1f2a44;
   --brand-token-shadow: #1f2a44;
@@ -134,27 +134,16 @@ html[data-theme='dark'] {
   --console-text: var(--text-primary);
   --console-error: var(--danger);
   --doodle-shadow: color-mix(in srgb, var(--bg) 42%, transparent);
-  --logo-tile: var(--accent);
-  --logo-outline: var(--text-primary);
-  --logo-ink: var(--bg);
-  --logo-shadow: var(--accent-secondary);
-  --logo-book: var(--surface);
-  --logo-spark: var(--accent-secondary);
-  --logo-pink: var(--accent);
-  --brand-token-background: var(--accent);
-  --brand-token-ink: var(--accent-on);
-  --brand-token-outline: var(--border);
-  --brand-token-shadow: var(--accent-secondary);
   --logo-tile: #f6d365;
-  --logo-outline: #f5ecdd;
+  --logo-outline: #1f1a17;
   --logo-ink: #1f1a17;
   --logo-shadow: #ff8a6b;
   --logo-book: #fff9ec;
-  --logo-spark: #ff8a6b;
-  --logo-pink: #f6d365;
-  --brand-token-background: #f6d365;
+  --logo-spark: #f6d365;
+  --logo-pink: #ff8a6b;
+  --brand-token-background: #ff8a6b;
   --brand-token-ink: #1f1a17;
-  --brand-token-outline: #f5ecdd;
+  --brand-token-outline: #1f1a17;
   --brand-token-shadow: #ff8a6b;
 }
 
@@ -401,6 +390,30 @@ html[data-theme='dark'] .theme-toggle { background: var(--doodle-lilac); }
   .auth-card { padding: 28px 22px; }
 }
 
+/* Auth mobile: undo desktop notebook inset so the stacked layout fits phones/tablets */
+@media (max-width: 900px) {
+  .auth-side {
+    padding:
+      max(20px, env(safe-area-inset-top))
+      max(72px, env(safe-area-inset-right))
+      22px
+      max(20px, env(safe-area-inset-left));
+    border-right: 0;
+    border-bottom: 2px dashed var(--line);
+  }
+  .auth-side::before { display: none; }
+  .auth-doodle-stamp { display: none; }
+  .auth-brand .logo--lg { font-size: 1.3rem; }
+}
+
+@media (max-width: 420px) {
+  .auth-side {
+    padding-right: max(64px, env(safe-area-inset-right));
+    padding-left: max(14px, env(safe-area-inset-left));
+  }
+  .auth-brand .logo--lg { font-size: 1.15rem; }
+}
+
 @media (max-width: 760px) {
   .landing-hero::before { top: 46%; right: 0; width: 250px; }
   .landing-hero::after { top: 44%; right: 5%; font-size: 2.6rem; }
@@ -432,14 +445,7 @@ html[data-theme='dark'] .theme-toggle { background: var(--doodle-lilac); }
   text-overflow: clip;
 }
 .shell-brand-name .brand-wordmark__token {
-  margin-left: 0.035em;
-  padding: 0;
-  color: var(--doodle-coral);
-  background: none;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  line-height: inherit;
+  /* Keep shared peach Na chip — do not strip Logo wordmark styles */
   transform: none;
 }
 .shell-role {
@@ -472,21 +478,80 @@ html[data-theme='dark'] .theme-toggle { background: var(--doodle-lilac); }
 .landing .btn { min-height: 44px; border-radius: 10px 8px 11px 9px; }
 
 .landing-hero {
-  min-height: calc(100svh - 86px);
   padding-block: clamp(24px, 5vh, 64px);
 }
 
-@media (max-width: 900px) {
-  .landing-nav, .landing-footer { width: min(100% - 40px, 680px); }
+/* Desktop: keep two-column hero fitted to the viewport width */
+@media (min-width: 901px) {
+  .landing-nav, .landing-footer {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding-inline: max(40px, calc((100% - 1320px) / 2));
+  }
   .landing-hero {
-    width: min(100% - 40px, 680px);
+    display: grid;
+    width: min(1320px, calc(100% - 80px));
+    max-width: 100%;
+    min-width: 0;
+    min-height: min(660px, calc(100svh - 86px));
+    min-height: min(660px, calc(100dvh - 86px));
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    align-items: center;
+    gap: clamp(28px, 4vw, 62px);
+    overflow-x: clip;
+  }
+  .landing-hero::before {
+    width: min(42%, 360px);
+    right: 2%;
+  }
+  .landing-copy { min-width: 0; }
+  .study-preview {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    justify-self: stretch;
+  }
+  .landing-tools {
+    width: min(1320px, calc(100% - 80px));
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .landing-nav, .landing-footer {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding-inline: max(18px, env(safe-area-inset-left)) max(18px, env(safe-area-inset-right));
+  }
+  .landing-hero {
+    width: auto;
+    max-width: none;
+    margin-inline: max(18px, env(safe-area-inset-left)) max(18px, env(safe-area-inset-right));
     min-height: 0;
     grid-template-columns: minmax(0, 1fr);
     gap: clamp(20px, 4vh, 34px);
     padding-block: clamp(28px, 6vh, 56px);
+    overflow-x: clip;
   }
-  .landing-copy { max-width: 680px; }
-  .study-preview { width: min(100%, 680px); justify-self: center; }
+  .landing-hero::before, .landing-hero-star { display: none; }
+  .landing-copy { max-width: none; min-width: 0; width: 100%; }
+  .study-preview {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    justify-self: stretch;
+    transform: none;
+    box-shadow: 4px 5px 0 var(--doodle-shadow);
+  }
+  .landing-brand .logo--lg { font-size: 1.2rem; }
+  .landing-actions .landing-cta { min-height: 44px; }
+  .landing-tools {
+    width: auto;
+    margin-inline: max(18px, env(safe-area-inset-left)) max(18px, env(safe-area-inset-right));
+  }
 }
 
 @media (min-width: 761px) and (max-height: 680px) {
@@ -537,14 +602,14 @@ html[data-theme='dark'] .theme-toggle { background: var(--doodle-lilac); }
 }
 
 @media (max-width: 380px) {
-  .landing-nav, .landing-footer { width: calc(100% - 28px); }
+  .landing-nav, .landing-footer { padding-inline: 14px; }
   .landing-nav { gap: 8px; }
   .landing-brand { gap: 6px; font-size: 1.1rem; }
   .landing-brand .brand-mark { width: 30px; height: 30px; }
   .landing-actions { gap: 8px; }
   .landing-actions .landing-cta { min-height: 44px; padding-inline: 10px; font-size: 0.82rem; }
   .landing-actions .theme-toggle { width: 54px; min-width: 54px; }
-  .landing-hero { width: calc(100% - 32px); }
+  .landing-hero { margin-inline: 14px; }
   .landing h1 { font-size: clamp(2.35rem, 11vw, 2.8rem); }
   .landing-buttons { gap: 12px; }
   .shell-brand-mark { width: 34px; height: 34px; }
@@ -556,11 +621,28 @@ html[data-theme='dark'] .theme-toggle { background: var(--doodle-lilac); }
   .shell-actions .theme-toggle .theme-toggle-thumb-dark { transform: translateX(14px); }
 }
 
+/* Short phones: keep Study Space visible — only tighten spacing */
 @media (max-width: 760px) and (max-height: 700px) {
-  .landing-hero { padding-block: 18px; }
-  .landing h1 { font-size: clamp(2.3rem, 8vw, 2.9rem); }
-  .landing-intro { margin-block: 9px 12px; font-size: 0.9rem; }
-  .study-preview { display: none; }
+  .landing-hero {
+    min-height: 0;
+    align-content: start;
+    gap: 14px;
+    padding-block: 16px 22px;
+  }
+  .landing h1 { font-size: clamp(2.2rem, 8vw, 2.75rem); }
+  .landing-intro { margin-block: 8px 12px; font-size: 0.9rem; }
+  .study-preview {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    padding: 0 8px 8px;
+    transform: none;
+  }
+  .preview-topbar { font-size: 0.5rem; min-height: 30px; }
+  .preview-guide { padding: 10px 12px; }
+  .preview-guide h2 { margin-top: 6px; font-size: 1.2rem; }
+  .preview-guide > p { margin: 4px 0 6px; font-size: 0.72rem; }
+  .preview-tool-row { padding-block: 6px; font-size: 0.65rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1059,7 +1141,11 @@ html[data-theme='dark'] .theme-toggle { background: var(--doodle-coral); }
 .quiz-step-button { width: auto; min-width: 44px; min-height: 48px; flex: 1 1 0; margin: 0; padding-inline: clamp(8px, 2.5vw, 16px); white-space: nowrap; }
 .quiz-answer-option { min-height: 48px; }
 .flashcard-nav-button { width: auto; min-width: 44px; min-height: 48px; flex: 1 1 0; margin: 0; padding-inline: 8px; }
-.reviewer-topic { max-width: 76ch; }
+.reviewer-topics {
+  width: min(100%, 48rem);
+  margin-inline: auto;
+}
+.reviewer-topic { width: 100%; max-width: none; }
 .reviewer-topic-toggle {
   display: flex;
   min-height: 44px;
@@ -1074,7 +1160,7 @@ html[data-theme='dark'] .theme-toggle { background: var(--doodle-coral); }
 .reviewer-topic-toggle > h2 { margin: 0; font-size: 1.05rem; }
 .reviewer-topic-chevron { color: var(--muted); font-size: 1.2rem; transition: transform 160ms ease; }
 .reviewer-topic[open] .reviewer-topic-chevron { transform: rotate(180deg); }
-.reviewer-topic-body { max-width: 72ch; padding-top: 8px; }
+.reviewer-topic-body { max-width: none; padding-top: 8px; }
 
 @media (max-width: 767px) {
   html, body, #root { width: 100%; overflow-x: clip; }
@@ -1089,7 +1175,32 @@ html[data-theme='dark'] .theme-toggle { background: var(--doodle-coral); }
     min-width: 0;
     padding-top: max(20px, env(safe-area-inset-top));
   }
-  .app-sidebar-main > *, .quiz-taking-page > *, .reviewer-topics > * { min-width: 0; max-width: 100%; }
+  .app-sidebar-main > *, .quiz-taking-page > *, .reviewer-topics > *,
+  .quiz-student-page, .quiz-admin-page, .quiz-student-list, .quiz-student-card,
+  .quiz-create-form, .quiz-list-section, .quiz-file-generator, .quiz-question-editor {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .quiz-student-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .quiz-student-actions { width: 100%; }
+  .quiz-card-action, .quiz-remove-action { width: 100%; min-height: 44px; }
+  .quiz-admin-row { grid-template-columns: minmax(0, 1fr); }
+  .quiz-admin-actions { width: 100%; flex-wrap: wrap; }
+  .quiz-admin-actions .btn { flex: 1 1 auto; min-height: 44px; }
+  .quiz-file-controls { grid-template-columns: minmax(0, 1fr); }
+  .quiz-form-actions { flex-direction: column; }
+  .quiz-form-actions .btn,
+  .quiz-file-generator > .btn { width: 100%; min-height: 44px; }
+  .quiz-choice-editor { grid-template-columns: minmax(0, 1fr); }
+  .quiz-student-picker { margin-left: 0; }
+  .quiz-results.table-wrap {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
   .quiz-student-question h2, .quiz-answer-option span, .reviewer-topic p, .reviewer-topic li {
     overflow-wrap: anywhere;
   }

@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../AuthContext.jsx';
 import { api } from '../../api.js';
+import ConfirmDialog from '../../components/ConfirmDialog.jsx';
+import { Reveal } from '../../components/motion';
+import { stagger } from '../../lib/motion.js';
 
 const fmt = (d) => (d ? new Date(d).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Never');
 
@@ -16,6 +19,7 @@ export default function Users() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [busyUserId, setBusyUserId] = useState('');
+  const [confirmAction, setConfirmAction] = useState(null);
 
   useEffect(() => {
     const t = setTimeout(() => setSearch(q.trim()), 300);
@@ -35,13 +39,33 @@ export default function Users() {
       .finally(() => setLoading(false));
   }, [role, status, search]);
 
+  function requestSuspend(u) {
+    setConfirmAction({
+      type: 'suspend',
+      user: u,
+      title: `Suspend ${u.fullName}?`,
+      message: 'They will be logged out and cannot log in until you restore the account.',
+      confirmLabel: 'Suspend',
+    });
+  }
+
+  function requestDelete(u) {
+    setConfirmAction({
+      type: 'delete',
+      user: u,
+      title: `Delete ${u.fullName}?`,
+      message: `Permanently delete ${u.email} and all of their learning data? This cannot be undone.`,
+      confirmLabel: 'Delete account',
+    });
+  }
+
   async function toggleStatus(u) {
-    if (u.isActive && !window.confirm(`Suspend ${u.fullName}? They will be logged out and cannot log in until you restore the account.`)) return;
     setError('');
     setBusyUserId(u.id);
     try {
       const { user } = await api.patch(`/admin/users/${u.id}/active`, { isActive: !u.isActive });
       setUsers((list) => list.map((x) => (x.id === user.id ? user : x)));
+      setConfirmAction(null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -50,12 +74,12 @@ export default function Users() {
   }
 
   async function deleteAccount(u) {
-    if (!window.confirm(`Permanently delete ${u.fullName} (${u.email}) and all of their learning data? This cannot be undone.`)) return;
     setError('');
     setBusyUserId(u.id);
     try {
       await api.delete(`/admin/users/${u.id}`);
       setUsers((list) => list.filter((x) => x.id !== u.id));
+      setConfirmAction(null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -63,9 +87,15 @@ export default function Users() {
     }
   }
 
+  async function handleConfirm() {
+    if (!confirmAction) return;
+    if (confirmAction.type === 'suspend') await toggleStatus(confirmAction.user);
+    else await deleteAccount(confirmAction.user);
+  }
+
   return (
     <div className="users-page">
-      <header className="page-heading">
+      <Reveal as="header" className="page-heading" variant="fadeUp" immediate>
         <div>
           <p className="page-eyebrow">ADMIN WORKSPACE / DIRECTORY</p>
           <h1>Users</h1>
@@ -76,9 +106,9 @@ export default function Users() {
         {isSuperAdmin && (
           <Link className="btn btn-primary page-heading-action" to="/admin/admins/new">Add admin <span aria-hidden="true">↗</span></Link>
         )}
-      </header>
+      </Reveal>
       {error && <div className="alert" role="alert">{error}</div>}
-      <div className="users-toolbar">
+      <Reveal className="users-toolbar" variant="fadeUp" delay={stagger.tight} immediate>
         <label className="user-search">
           <span aria-hidden="true">⌕</span>
           <input type="search" placeholder="Search by name or email" aria-label="Search by name or email" value={q} onChange={(e) => setQ(e.target.value)} />
@@ -94,8 +124,8 @@ export default function Users() {
           <option value="disabled">Suspended</option>
         </select>
         <span className="results-count">{loading ? 'Updating...' : `${users.length} ${users.length === 1 ? 'account' : 'accounts'}`}</span>
-      </div>
-      <div className="table-wrap users-table-wrap">
+      </Reveal>
+      <Reveal className="table-wrap users-table-wrap" variant="fadeUp" delay={stagger.base} immediate>
         <table className="users-table">
           <thead>
             <tr>
@@ -121,10 +151,10 @@ export default function Users() {
                       </button>
                     ) : (
                       <>
-                        <button className="btn btn-ghost user-action" disabled={busyUserId === u.id} onClick={() => toggleStatus(u)} aria-label={`${u.isActive ? 'Suspend' : 'Restore'} ${u.fullName}`}>
+                        <button className="btn btn-ghost user-action" disabled={busyUserId === u.id} onClick={() => (u.isActive ? requestSuspend(u) : toggleStatus(u))} aria-label={`${u.isActive ? 'Suspend' : 'Restore'} ${u.fullName}`}>
                           {busyUserId === u.id ? 'Saving...' : u.isActive ? 'Suspend' : 'Restore'}
                         </button>
-                        <button className="btn btn-ghost user-action user-delete-action" disabled={busyUserId === u.id} onClick={() => deleteAccount(u)} aria-label={`Permanently delete ${u.fullName}`}>
+                        <button className="btn btn-ghost user-action user-delete-action" disabled={busyUserId === u.id} onClick={() => requestDelete(u)} aria-label={`Permanently delete ${u.fullName}`}>
                           Delete
                         </button>
                       </>
@@ -135,7 +165,17 @@ export default function Users() {
             ))}
           </tbody>
         </table>
-      </div>
+      </Reveal>
+      <ConfirmDialog
+        open={Boolean(confirmAction)}
+        eyebrow="ACCOUNT ACCESS"
+        title={confirmAction?.title || 'Confirm'}
+        message={confirmAction?.message}
+        confirmLabel={confirmAction?.confirmLabel || 'Confirm'}
+        busy={Boolean(busyUserId)}
+        onCancel={() => setConfirmAction(null)}
+        onConfirm={handleConfirm}
+      />
     </div>
   );
 }

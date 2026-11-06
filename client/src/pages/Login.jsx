@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { AnimatePresence, m } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import AuthLayout from '../components/AuthLayout.jsx';
 import Field from '../components/Field.jsx';
+import { MagneticButton } from '../components/motion';
+import { useMotionConfig } from '../lib/motion.js';
 import { api } from '../api.js';
 import ServerWaitingCard from '../components/ServerWaitingCard.jsx';
 import { useServerStatus } from '../useServerStatus.js';
@@ -11,6 +14,7 @@ export default function Login() {
   const { login } = useAuth();
   const serverStatus = useServerStatus();
   const navigate = useNavigate();
+  const { variants } = useMotionConfig();
   const [form, setForm] = useState({ email: '', password: '' });
   const [resetForm, setResetForm] = useState({ code: '', password: '' });
   const [mode, setMode] = useState('login');
@@ -107,114 +111,165 @@ export default function Login() {
       {(serverStatus === 'waking' || serverStatus === 'failed') && (
         <ServerWaitingCard status={serverStatus} onRetry={retryCurrentRequest} />
       )}
-      {mode === 'login' && (
-        <>
-          <h1>Log in</h1>
-          <p className="auth-sub">Enter your email and password to continue to your account.</p>
-          {error && <div className="alert" role="alert">{error}</div>}
-          {notice && <div className="auth-notice" role="status">{notice}</div>}
-          <form onSubmit={onSubmit} noValidate>
-            <Field label="Email" name="email" type="email" autoComplete="email" value={form.email} onChange={onChange} />
-            <Field label="Password" name="password" type="password" autoComplete="current-password" value={form.password} onChange={onChange} />
-            <p className="auth-forgot"><button type="button" className="auth-link" onClick={() => changeMode('request')}>Forgot password?</button></p>
-            <button className="btn btn-primary" disabled={busy || serverStatus === 'waking'}>
-              {serverStatus === 'waking' ? 'Waiting for server...' : busy ? 'Logging in...' : 'Log in'}
-            </button>
-          </form>
-          <p className="auth-switch">New student? <Link to="/register">Create an account</Link></p>
-        </>
-      )}
-      {mode === 'request' && (
-        <section className="auth-reset">
-          <div className="auth-reset-progress" aria-label="Step 1 of 3">
-            <span className="auth-reset-step auth-reset-step-active"><span>1</span> Email</span>
-            <span className="auth-reset-progress-line" aria-hidden="true" />
-            <span className="auth-reset-step"><span>2</span> Code</span>
-            <span className="auth-reset-progress-line" aria-hidden="true" />
-            <span className="auth-reset-step"><span>3</span> Password</span>
-          </div>
-          <p className="auth-reset-eyebrow">ACCOUNT RECOVERY</p>
-          <h1>Forgot password?</h1>
-          <p className="auth-sub">Enter your account email to get a reset code.</p>
-          {error && <div className="alert" role="alert">{error}</div>}
-          <form onSubmit={requestResetCode} noValidate>
-            <Field label="Email" name="email" type="email" autoComplete="email" value={form.email} onChange={onChange} />
-            <button className="btn btn-primary auth-reset-submit" disabled={busy || serverStatus === 'waking'}>
-              {serverStatus === 'waking' ? 'Waiting for server...' : busy ? 'Sending code...' : <>Send reset code <span aria-hidden="true">→</span></>}
-            </button>
-          </form>
-          <button type="button" className="auth-reset-back" onClick={() => changeMode('login')}>
-            <span aria-hidden="true">←</span> Back to log in
-          </button>
-        </section>
-      )}
-      {mode === 'reset' && (
-        <section className="auth-reset">
-          <div className="auth-reset-progress" aria-label={resetForm.code.length === 6 ? 'Step 3 of 3' : 'Step 2 of 3'}>
-            <span className="auth-reset-step auth-reset-step-complete"><span>✓</span> Email</span>
-            <span className="auth-reset-progress-line auth-reset-progress-complete" aria-hidden="true" />
-            <span className={`auth-reset-step ${resetForm.code.length < 6 ? 'auth-reset-step-active' : 'auth-reset-step-complete'}`}>
-              <span>{resetForm.code.length < 6 ? '2' : '✓'}</span> Code
-            </span>
-            <span className={`auth-reset-progress-line ${resetForm.code.length === 6 ? 'auth-reset-progress-complete' : ''}`} aria-hidden="true" />
-            <span className={`auth-reset-step ${resetForm.code.length === 6 ? 'auth-reset-step-active' : ''}`}>
-              <span>3</span> Password
-            </span>
-          </div>
-          <p className="auth-reset-eyebrow">ACCOUNT RECOVERY</p>
-          <h1>{resetForm.code.length === 6 ? 'Choose a new password' : 'Enter your reset code'}</h1>
-          <p className="auth-sub">
-            {resetForm.code.length === 6
-              ? <>Now create a new password for <strong>{form.email}</strong>.</>
-              : <>If an active account matches <strong>{form.email}</strong>, enter the 6-digit code it received.</>}
-          </p>
-          {notice && <div className="auth-notice" role="status">{notice}</div>}
-          {error && <div className="alert" role="alert">{error}</div>}
-          <form onSubmit={resetPassword} noValidate>
-            <Field
-              label="6-digit code"
-              name="reset-code"
-              type="text"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              className="auth-code-input"
-              placeholder="000000"
-              maxLength={6}
-              autoFocus
-              value={resetForm.code}
-              onChange={(e) => setResetForm({
-                ...resetForm,
-                code: e.target.value.replace(/\D/g, ''),
-                password: '',
-              })}
-            />
-            {resetForm.code.length === 6 && (
-              <>
-                <Field
-                  label="New password"
-                  name="reset-password"
-                  type="password"
-                  autoComplete="new-password"
-                  autoFocus
-                  value={resetForm.password}
-                  onChange={(e) => setResetForm({ ...resetForm, password: e.target.value })}
-                />
-                <p className="auth-password-help">At least 8 characters, including a letter and a number.</p>
-                <button className="btn btn-primary auth-reset-submit" disabled={busy || serverStatus === 'waking'}>
-                  {serverStatus === 'waking' ? 'Waiting for server...' : busy ? 'Updating password...' : 'Reset password'}
+
+      {/* Mode panels — focal: mirrored enter/exit (not plain fade) */}
+      <AnimatePresence mode="wait" initial={false}>
+        {mode === 'login' && (
+          <m.div
+            key="login"
+            variants={variants.slideIn}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <h1>Log in</h1>
+            <p className="auth-sub">Enter your email and password to continue to your account.</p>
+            {error && <div className="alert" role="alert">{error}</div>}
+            {notice && <div className="auth-notice" role="status">{notice}</div>}
+            <form onSubmit={onSubmit} noValidate>
+              <Field label="Email" name="email" type="email" autoComplete="email" value={form.email} onChange={onChange} />
+              <Field label="Password" name="password" type="password" autoComplete="current-password" value={form.password} onChange={onChange} />
+              <p className="auth-forgot">
+                <button type="button" className="auth-link" onClick={() => changeMode('request')}>
+                  Forgot password?
                 </button>
-              </>
-            )}
-          </form>
-          <div className="auth-reset-footer">
-            <span>Didn’t get a code?</span>
-            <button type="button" className="auth-link" onClick={() => changeMode('request')}>Send another</button>
-          </div>
-          <button type="button" className="auth-reset-back" onClick={() => changeMode('login')}>
-            <span aria-hidden="true">←</span> Back to log in
-          </button>
-        </section>
-      )}
+              </p>
+              <MagneticButton
+                as="button"
+                type="submit"
+                className="btn btn-primary"
+                disabled={busy || serverStatus === 'waking'}
+              >
+                {serverStatus === 'waking' ? 'Waiting for server...' : busy ? 'Logging in...' : 'Log in'}
+              </MagneticButton>
+            </form>
+            <p className="auth-switch">
+              New student? <Link to="/register">Create an account</Link>
+            </p>
+          </m.div>
+        )}
+
+        {mode === 'request' && (
+          <m.section
+            key="request"
+            className="auth-reset"
+            variants={variants.slideInX}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <div className="auth-reset-progress" aria-label="Step 1 of 3">
+              <span className="auth-reset-step auth-reset-step-active"><span>1</span> Email</span>
+              <span className="auth-reset-progress-line" aria-hidden="true" />
+              <span className="auth-reset-step"><span>2</span> Code</span>
+              <span className="auth-reset-progress-line" aria-hidden="true" />
+              <span className="auth-reset-step"><span>3</span> Password</span>
+            </div>
+            <p className="auth-reset-eyebrow">ACCOUNT RECOVERY</p>
+            <h1>Forgot password?</h1>
+            <p className="auth-sub">Enter your account email to get a reset code.</p>
+            {error && <div className="alert" role="alert">{error}</div>}
+            <form onSubmit={requestResetCode} noValidate>
+              <Field label="Email" name="email" type="email" autoComplete="email" value={form.email} onChange={onChange} />
+              <MagneticButton
+                as="button"
+                type="submit"
+                className="btn btn-primary auth-reset-submit"
+                disabled={busy || serverStatus === 'waking'}
+              >
+                {serverStatus === 'waking'
+                  ? 'Waiting for server...'
+                  : busy
+                    ? 'Sending code...'
+                    : <>Send reset code <span aria-hidden="true">→</span></>}
+              </MagneticButton>
+            </form>
+            <button type="button" className="auth-reset-back" onClick={() => changeMode('login')}>
+              <span aria-hidden="true">←</span> Back to log in
+            </button>
+          </m.section>
+        )}
+
+        {mode === 'reset' && (
+          <m.section
+            key="reset"
+            className="auth-reset"
+            variants={variants.slideInX}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <div className="auth-reset-progress" aria-label={resetForm.code.length === 6 ? 'Step 3 of 3' : 'Step 2 of 3'}>
+              <span className="auth-reset-step auth-reset-step-complete"><span>✓</span> Email</span>
+              <span className="auth-reset-progress-line auth-reset-progress-complete" aria-hidden="true" />
+              <span className={`auth-reset-step ${resetForm.code.length < 6 ? 'auth-reset-step-active' : 'auth-reset-step-complete'}`}>
+                <span>{resetForm.code.length < 6 ? '2' : '✓'}</span> Code
+              </span>
+              <span className={`auth-reset-progress-line ${resetForm.code.length === 6 ? 'auth-reset-progress-complete' : ''}`} aria-hidden="true" />
+              <span className={`auth-reset-step ${resetForm.code.length === 6 ? 'auth-reset-step-active' : ''}`}>
+                <span>3</span> Password
+              </span>
+            </div>
+            <p className="auth-reset-eyebrow">ACCOUNT RECOVERY</p>
+            <h1>{resetForm.code.length === 6 ? 'Choose a new password' : 'Enter your reset code'}</h1>
+            <p className="auth-sub">
+              {resetForm.code.length === 6
+                ? <>Now create a new password for <strong>{form.email}</strong>.</>
+                : <>If an active account matches <strong>{form.email}</strong>, enter the 6-digit code it received.</>}
+            </p>
+            {notice && <div className="auth-notice" role="status">{notice}</div>}
+            {error && <div className="alert" role="alert">{error}</div>}
+            <form onSubmit={resetPassword} noValidate>
+              <Field
+                label="6-digit code"
+                name="reset-code"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                className="auth-code-input"
+                placeholder="000000"
+                maxLength={6}
+                autoFocus
+                value={resetForm.code}
+                onChange={(e) => setResetForm({
+                  ...resetForm,
+                  code: e.target.value.replace(/\D/g, ''),
+                  password: '',
+                })}
+              />
+              {resetForm.code.length === 6 && (
+                <>
+                  <Field
+                    label="New password"
+                    name="reset-password"
+                    type="password"
+                    autoComplete="new-password"
+                    autoFocus
+                    value={resetForm.password}
+                    onChange={(e) => setResetForm({ ...resetForm, password: e.target.value })}
+                  />
+                  <p className="auth-password-help">At least 8 characters, including a letter and a number.</p>
+                  <MagneticButton
+                    as="button"
+                    type="submit"
+                    className="btn btn-primary auth-reset-submit"
+                    disabled={busy || serverStatus === 'waking'}
+                  >
+                    {serverStatus === 'waking' ? 'Waiting for server...' : busy ? 'Updating password...' : 'Reset password'}
+                  </MagneticButton>
+                </>
+              )}
+            </form>
+            <div className="auth-reset-footer">
+              <span>Didn’t get a code?</span>
+              <button type="button" className="auth-link" onClick={() => changeMode('request')}>Send another</button>
+            </div>
+            <button type="button" className="auth-reset-back" onClick={() => changeMode('login')}>
+              <span aria-hidden="true">←</span> Back to log in
+            </button>
+          </m.section>
+        )}
+      </AnimatePresence>
     </AuthLayout>
   );
 }

@@ -1,0 +1,10 @@
+export { default as MotionProvider } from "./MotionProvider.jsx";
+export { default as Reveal } from "./Reveal.jsx";
+export { StaggerGroup, StaggerItem } from "./StaggerGroup.jsx";
+export { default as SplitText } from "./SplitText.jsx";
+export { default as MagneticButton } from "./MagneticButton.jsx";
+export { default as ParallaxLayer } from "./ParallaxLayer.jsx";
+export { default as PageTransition } from "./PageTransition.jsx";
+export { default as ShellBackdrop } from "./ShellBackdrop.jsx";
+export { useDesktopMotion } from "./useDesktopMotion.js";
+export { useShellAsideMotion } from "./useShellAsideMotion.js";

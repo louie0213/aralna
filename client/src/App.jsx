@@ -19,6 +19,7 @@ import Landing from './pages/Landing.jsx';
 import QuizLoaderDemo from './pages/QuizLoaderDemo.jsx';
 import RouteTransition from './components/RouteTransition.jsx';
 import MotionRuntime from './components/MotionRuntime.jsx';
+import MotionProvider from './components/motion/MotionProvider.jsx';
 import ServerWaitingCard from './components/ServerWaitingCard.jsx';
 import { useServerStatus } from './useServerStatus.js';
 
@@ -71,36 +72,38 @@ function QuizFocusGuard({ children }) {
 
 export default function App() {
   return (
-    <QuizFocusGuard>
-      <MotionRuntime />
-      <Routes>
-        <Route element={<RouteTransition />}>
-          <Route path="/" element={<Landing />} />
-          {import.meta.env.DEV && <Route path="/quiz-loader-demo" element={<QuizLoaderDemo />} />}
-          <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
-          <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
-        </Route>
-        <Route path="/app" element={<Guarded role={['student', 'admin']}><StudentLayout /></Guarded>}>
+    <MotionProvider>
+      <QuizFocusGuard>
+        <MotionRuntime />
+        <Routes>
           <Route element={<RouteTransition />}>
-            <Route index element={<StudentHome />} />
-            <Route path="upload" element={<Upload />} />
-            <Route path="reviewers" element={<Reviewers />} />
-            <Route path="reviewers/:id" element={<Reviewer />} />
-            <Route path="quizzes" element={<Quizzes />} />
-            <Route path="quizzes/:id" element={<Quiz />} />
+            <Route path="/" element={<Landing />} />
+            {import.meta.env.DEV && <Route path="/quiz-loader-demo" element={<QuizLoaderDemo />} />}
+            <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
+            <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
           </Route>
-        </Route>
-        <Route path="/admin" element={<Guarded role="admin"><AdminLayout /></Guarded>}>
-          <Route element={<RouteTransition />}>
-            <Route index element={<Overview />} />
-            <Route path="users" element={<Users />} />
-            <Route path="files" element={<Files />} />
-            <Route path="quizzes" element={<AdminQuizzes />} />
-            <Route path="admins/new" element={<SuperAdminOnly><AddAdmin /></SuperAdminOnly>} />
+          <Route path="/app" element={<Guarded role={['student', 'admin']}><StudentLayout /></Guarded>}>
+            <Route element={<RouteTransition />}>
+              <Route index element={<StudentHome />} />
+              <Route path="upload" element={<Upload />} />
+              <Route path="reviewers" element={<Reviewers />} />
+              <Route path="reviewers/:id" element={<Reviewer />} />
+              <Route path="quizzes" element={<Quizzes />} />
+              <Route path="quizzes/:id" element={<Quiz />} />
+            </Route>
           </Route>
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </QuizFocusGuard>
+          <Route path="/admin" element={<Guarded role="admin"><AdminLayout /></Guarded>}>
+            <Route element={<RouteTransition />}>
+              <Route index element={<Overview />} />
+              <Route path="users" element={<Users />} />
+              <Route path="files" element={<Files />} />
+              <Route path="quizzes" element={<AdminQuizzes />} />
+              <Route path="admins/new" element={<SuperAdminOnly><AddAdmin /></SuperAdminOnly>} />
+            </Route>
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </QuizFocusGuard>
+    </MotionProvider>
   );
 }

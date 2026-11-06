@@ -1,9 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { AnimatePresence, m } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
+import ConfirmDialog from '../components/ConfirmDialog.jsx';
 import Dropzone from '../components/Dropzone.jsx';
-import Reveal from '../components/Reveal.jsx';
 import QuizLoader from '../components/QuizLoader.jsx';
+import {
+  Reveal,
+  StaggerGroup,
+  StaggerItem,
+} from '../components/motion';
+import { useMotionConfig } from '../lib/motion.js';
 import { api } from '../api.js';
 
 const ICONS = { '.pdf': '\ud83d\udcc4', '.docx': '\ud83d\udcdd', '.pptx': '\ud83d\udcca', '.txt': '\ud83d\udcc3', '.png': '\ud83d\uddbc\ufe0f', '.jpg': '\ud83d\uddbc\ufe0f', '.jpeg': '\ud83d\uddbc\ufe0f', '.webp': '\ud83d\uddbc\ufe0f' };
@@ -12,13 +19,15 @@ const kb = (bytes) => `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
 export default function Upload() {
   const navigate = useNavigate();
+  const { variants } = useMotionConfig();
   const [documents, setDocuments] = useState([]);
   const [queue, setQueue] = useState([]); // { id, name, progress, stage: 'uploading' | 'reading' | 'error', message }
   const [openId, setOpenId] = useState(null);
-  const [closingPreviewId, setClosingPreviewId] = useState(null);
   const [generation, setGeneration] = useState(null);
   const generationController = useRef(null);
   const [error, setError] = useState('');
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   function load() {
     api.get('/documents').then((d) => setDocuments(d.documents)).catch((err) => setError(err.message));
@@ -47,16 +56,19 @@ export default function Upload() {
     });
   }
 
-  async function remove(id) {
-    if (!window.confirm('Delete this document? This cannot be undone.')) return;
+  async function remove() {
+    if (!pendingDelete) return;
     setError('');
+    setDeleting(true);
     try {
-      await api.delete(`/documents/${id}`);
-      setDocuments((list) => list.filter((d) => d.id !== id));
-      if (openId === id) setOpenId(null);
-      setClosingPreviewId((current) => (current === id ? null : current));
+      await api.delete(`/documents/${pendingDelete.id}`);
+      setDocuments((list) => list.filter((d) => d.id !== pendingDelete.id));
+      if (openId === pendingDelete.id) setOpenId(null);
+      setPendingDelete(null);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -85,14 +97,7 @@ export default function Upload() {
   }
 
   function togglePreview(documentId) {
-    if (openId === documentId) {
-      setOpenId(null);
-      setClosingPreviewId(documentId);
-      return;
-    }
-
-    setClosingPreviewId(null);
-    setOpenId(documentId);
+    setOpenId((current) => (current === documentId ? null : documentId));
   }
 
   return (
@@ -108,20 +113,26 @@ export default function Upload() {
         </div>,
         document.body
       )}
-      <Reveal as="h1" className="upload-page-title">Upload documents</Reveal>
+
+      <Reveal as="h1" className="upload-page-title" variant="fadeUp">
+        Upload documents
+      </Reveal>
       {error && <div className="alert" role="alert">{error}</div>}
-      <Reveal className="upload-dropzone-reveal">
+
+      {/* Dropzone — focal: soft scale-in */}
+      <Reveal className="upload-dropzone-reveal" variant="scaleIn">
         <Dropzone onFiles={onFiles} queue={queue} />
       </Reveal>
 
-      <Reveal as="section" className="panel upload-documents-panel">
+      {/* Document list — supporting stagger; preview uses AnimatePresence */}
+      <Reveal as="section" className="panel upload-documents-panel" variant="fadeUp" delay={0.12}>
         <h2>Your documents</h2>
         {documents.length === 0 ? (
           <p className="muted">Nothing uploaded yet. Drop a file above to get started.</p>
         ) : (
-          <ul className="doc-list" data-reveal-group>
+          <StaggerGroup as="ul" className="doc-list" staggerChildren={0.09} delayChildren={0.06}>
             {documents.map((d) => (
-              <Reveal as="li" key={d.id} className="doc-row">
+              <StaggerItem as="li" key={d.id} className="doc-row">
                 <button
                   type="button"
                   className="doc-main"
@@ -141,26 +152,39 @@ export default function Upload() {
                   >
                     {generation?.status === 'loading' && generation.documentId === d.id ? 'Generating...' : 'Generate reviewer'}
                   </button>
-                  <button className="btn btn-ghost" onClick={() => remove(d.id)}>Delete</button>
+                  <button className="btn btn-ghost" onClick={() => setPendingDelete(d)}>Delete</button>
                 </div>
-                {(openId === d.id || closingPreviewId === d.id) && (
-                  <div
-                    className={`doc-preview${closingPreviewId === d.id ? ' is-closing' : ''}`}
-                    aria-hidden={openId !== d.id}
-                    onAnimationEnd={(event) => {
-                      if (event.target === event.currentTarget && closingPreviewId === d.id) {
-                        setClosingPreviewId(null);
-                      }
-                    }}
-                  >
-                    {d.status === 'failed' ? <p className="muted">{d.error}</p> : <pre>{d.extractedText?.slice(0, 4000) || 'No text extracted.'}</pre>}
-                  </div>
-                )}
-              </Reveal>
+                <AnimatePresence initial={false}>
+                  {openId === d.id && (
+                    <m.div
+                      key={`preview-${d.id}`}
+                      className="doc-preview"
+                      variants={variants.slideIn}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                    >
+                      {d.status === 'failed'
+                        ? <p className="muted">{d.error}</p>
+                        : <pre>{d.extractedText?.slice(0, 4000) || 'No text extracted.'}</pre>}
+                    </m.div>
+                  )}
+                </AnimatePresence>
+              </StaggerItem>
             ))}
-          </ul>
+          </StaggerGroup>
         )}
       </Reveal>
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        eyebrow="DOCUMENTS"
+        title={pendingDelete ? `Delete "${pendingDelete.originalName}"?` : 'Delete document?'}
+        message="This cannot be undone."
+        confirmLabel="Delete"
+        busy={deleting}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={remove}
+      />
     </div>
   );
 }

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../api.js';
+import { Reveal } from '../../components/motion';
+import { stagger } from '../../lib/motion.js';
 
 const PAGE_SIZE = 40;
 const fmtDate = (date) => new Date(date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
@@ -32,18 +34,18 @@ export default function Files() {
 
   return (
     <div className="files-page">
-      <header className="page-heading">
+      <Reveal as="header" className="page-heading" variant="fadeUp" immediate>
         <div>
           <p className="page-eyebrow">ADMIN WORKSPACE / UPLOADS</p>
           <h1>Files</h1>
           <p className="page-description">Review uploaded document details and who uploaded them.</p>
         </div>
         <span className="results-count">{total} {total === 1 ? 'file' : 'files'}</span>
-      </header>
+      </Reveal>
 
       {error && <div className="alert" role="alert">{error}</div>}
 
-      <div className="table-wrap files-table-wrap">
+      <Reveal className="table-wrap files-table-wrap" variant="fadeUp" delay={stagger.tight} immediate>
         <table className="files-table">
           <thead>
             <tr><th>File</th><th>Uploaded by</th><th>Uploaded</th><th>Size</th><th>Status</th></tr>
@@ -76,10 +78,10 @@ export default function Files() {
             ))}
           </tbody>
         </table>
-      </div>
+      </Reveal>
 
       {pageCount > 1 && (
-        <div className="files-pagination" aria-label="File pages">
+        <Reveal className="files-pagination" variant="fadeUp" delay={stagger.base} aria-label="File pages">
           <button className="btn btn-ghost" disabled={page === 1 || loading} onClick={() => setPage((current) => current - 1)}>
             Previous
           </button>
@@ -87,10 +89,12 @@ export default function Files() {
           <button className="btn btn-ghost" disabled={page >= pageCount || loading} onClick={() => setPage((current) => current + 1)}>
             Next
           </button>
-        </div>
+        </Reveal>
       )}
 
-      <p className="files-note">Uploaded originals are removed after processing. This page shows saved file details only.</p>
+      <Reveal as="p" className="files-note" variant="fadeUp" delay={stagger.loose}>
+        Uploaded originals are removed after processing. This page shows saved file details only.
+      </Reveal>
     </div>
   );
 }
