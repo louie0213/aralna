@@ -1,3 +1,4 @@
+// this file reveals elements with a simple scroll intersection animation
 import { useLayoutEffect, useRef } from 'react';
 
 let revealObserver;

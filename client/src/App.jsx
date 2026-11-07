@@ -1,3 +1,4 @@
+// this file sets up app routes and locks navigation while a quiz is in progress
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext.jsx';
 import Login from './pages/Login.jsx';
@@ -23,8 +24,10 @@ import MotionProvider from './components/motion/MotionProvider.jsx';
 import ServerWaitingCard from './components/ServerWaitingCard.jsx';
 import { useServerStatus } from './useServerStatus.js';
 
+// this function picks the home route for a user
 const homeFor = (user) => (user.role === 'admin' ? '/admin' : '/app');
 
+// this function guards routes by auth and role
 function Guarded({ role, children }) {
   const { user, authStatus, checkAuth } = useAuth();
   const serverStatus = useServerStatus();
@@ -40,6 +43,7 @@ function Guarded({ role, children }) {
   return children;
 }
 
+// this function keeps logged-in users off guest pages
 function GuestOnly({ children }) {
   const { user, authStatus, checkAuth } = useAuth();
   const serverStatus = useServerStatus();
@@ -53,12 +57,14 @@ function GuestOnly({ children }) {
   return children;
 }
 
+// this function only lets super admins through
 function SuperAdminOnly({ children }) {
   const { user } = useAuth();
   if (!user?.isSuperAdmin) return <Navigate to="/admin/users" replace />;
   return children;
 }
 
+// this function locks students onto an active quiz
 function QuizFocusGuard({ children }) {
   const { user, activeQuizId } = useAuth();
   const location = useLocation();
@@ -70,6 +76,7 @@ function QuizFocusGuard({ children }) {
   return children;
 }
 
+// this function renders the app routes
 export default function App() {
   return (
     <MotionProvider>

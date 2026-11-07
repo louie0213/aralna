@@ -1,3 +1,4 @@
+// this file sends password reset emails to users
 import { randomUUID } from 'node:crypto';
 import nodemailer from 'nodemailer';
 

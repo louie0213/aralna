@@ -1,3 +1,4 @@
+// this file handles drag-and-drop file picking for uploads
 import { useRef, useState } from 'react';
 
 const ACCEPT = '.pdf,.docx,.pptx,.txt,.png,.jpg,.jpeg,.webp';

@@ -1,3 +1,4 @@
+// this file checks auth tokens and protects private routes
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
@@ -5,6 +6,7 @@ export const COOKIE_NAME = 'aralna_token';
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const TOUCH_EVERY_MS = 15 * 60 * 1000;
 
+// this function signs a JWT for the logged-in user
 export function signToken(user) {
   return jwt.sign(
     { sub: user.id, passwordChangedAt: user.passwordChangedAt?.getTime() || 0 },
@@ -13,6 +15,7 @@ export function signToken(user) {
   );
 }
 
+// this function sets the httpOnly auth cookie
 export function setAuthCookie(res, token) {
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
@@ -22,8 +25,7 @@ export function setAuthCookie(res, token) {
   });
 }
 
-// The role is always read from the database, never trusted from the token or the client.
-// A disabled account is rejected here on its very next request.
+// this middleware checks the auth cookie and loads the user
 export async function requireAuth(req, res, next) {
   const token = req.cookies[COOKIE_NAME];
   if (!token) return res.status(401).json({ message: 'Log in to continue.' });
@@ -50,11 +52,13 @@ export async function requireAuth(req, res, next) {
   }
 }
 
+// this middleware checks that the user has one of the allowed roles
 export const requireRole = (...roles) => (req, res, next) =>
   roles.includes(req.user.role)
     ? next()
     : res.status(403).json({ message: 'You do not have access to this page.' });
 
+// this middleware checks that the user is the super admin
 export const requireSuperAdmin = (req, res, next) =>
   req.user.role === 'admin' && req.user.isSuperAdmin
     ? next()

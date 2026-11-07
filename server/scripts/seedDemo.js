@@ -1,3 +1,4 @@
+// this file seeds demo data for local testing
 // Fills the dashboard with sample data so you can see it working.
 //   npm run seed:demo    adds 6 demo students and about 30 generations
 //   npm run clear:demo   removes them again

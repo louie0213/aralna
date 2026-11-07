@@ -1,3 +1,4 @@
+// this file renders the student shell with sidebar navigation
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
@@ -193,7 +194,7 @@ export default function StudentLayout() {
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d={sidebarCollapsed ? 'm9 18 6-6-6-6' : 'm15 18-6-6 6-6'} /></svg>
       </button>
       <main className="shell-main app-sidebar-main">
-        <PageBack />
+        {!activeQuizId && <PageBack />}
         <Outlet />
       </main>
     </div>

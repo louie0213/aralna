@@ -1,3 +1,4 @@
+// this file animates elements into view with motion variants
 import { useRef } from "react";
 import { useMotionConfig } from "../../lib/motion.js";
 import { motionTag } from "./motionTag.js";

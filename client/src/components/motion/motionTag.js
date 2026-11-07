@@ -1,3 +1,4 @@
+// this file maps HTML tags to motion elements safely
 import { m } from "motion/react";
 
 const customCache = new Map();

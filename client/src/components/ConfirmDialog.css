@@ -1,3 +1,4 @@
+/* this file styles the confirm popup modal */
 .confirm-dialog-backdrop {
   position: fixed;
   inset: 0;
@@ -58,9 +59,17 @@
   gap: 10px;
 }
 
+.confirm-dialog-actions.is-reversed {
+  flex-direction: column-reverse;
+}
+
 .confirm-dialog-actions .btn {
   flex: 1 1 auto;
   min-height: 44px;
+}
+
+.confirm-dialog-actions.is-reversed .btn {
+  width: 100%;
 }
 
 .confirm-dialog-confirm,
@@ -111,7 +120,10 @@
 @media (max-width: 520px) {
   .confirm-dialog-backdrop { padding: 14px; }
   .confirm-dialog { padding: 22px 18px; }
-  .confirm-dialog-actions { flex-direction: column-reverse; }
+  .confirm-dialog-actions,
+  .confirm-dialog-actions.is-reversed {
+    flex-direction: column-reverse;
+  }
   .confirm-dialog-actions .btn { width: 100%; }
 }
 

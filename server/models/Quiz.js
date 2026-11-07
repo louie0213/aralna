@@ -1,3 +1,4 @@
+// this file stores quiz questions and assignments
 import mongoose from 'mongoose';
 
 const questionSchema = new mongoose.Schema(

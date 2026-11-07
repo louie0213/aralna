@@ -1,3 +1,4 @@
+// this file renders sidebar nav links with icons
 import { NavLink } from 'react-router-dom';
 
 const icons = {

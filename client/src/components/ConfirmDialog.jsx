@@ -1,3 +1,4 @@
+// this file shows a confirm popup instead of window.confirm
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import './ConfirmDialog.css';
@@ -14,6 +15,7 @@ export default function ConfirmDialog({
   cancelLabel = 'Cancel',
   busy = false,
   tone = 'danger',
+  reverseActions = false,
   onConfirm,
   onCancel,
 }) {
@@ -94,7 +96,7 @@ export default function ConfirmDialog({
         <p className="page-eyebrow">{eyebrow}</p>
         <h2 id="confirm-dialog-title">{title}</h2>
         {message && <p id="confirm-dialog-message" className="confirm-dialog-message">{message}</p>}
-        <div className="confirm-dialog-actions">
+        <div className={`confirm-dialog-actions${reverseActions ? ' is-reversed' : ''}`}>
           <button
             ref={cancelRef}
             className="btn btn-ghost"

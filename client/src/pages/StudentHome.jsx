@@ -1,3 +1,4 @@
+// this file shows the student home dashboard
 import { Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import {

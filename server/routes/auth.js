@@ -1,3 +1,4 @@
+// this file handles login, register, and password reset routes
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { createHmac, randomInt, timingSafeEqual } from 'node:crypto';

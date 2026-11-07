@@ -1,3 +1,4 @@
+// this file animates text by splitting letters or words
 import { m } from "motion/react";
 import { useMemo } from "react";
 import { useMotionConfig } from "../../lib/motion.js";

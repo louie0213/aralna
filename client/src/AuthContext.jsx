@@ -1,13 +1,17 @@
+// this file stores login state and active quiz session for the whole app
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { api } from './api.js';
 
 const AuthContext = createContext(null);
+// this function reads the auth context
 export const useAuth = () => useContext(AuthContext);
 
+// this function provides auth state to the app
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [authStatus, setAuthStatus] = useState('checking');
   const loading = authStatus === 'checking';
+  // this function restores the saved quiz session
   const [activeQuizSession, setActiveQuizSession] = useState(() => {
     try {
       return JSON.parse(window.localStorage.getItem('aralna_active_quiz') || 'null');
@@ -21,17 +25,20 @@ export function AuthProvider({ children }) {
     ? activeQuizSession.quizId
     : null;
 
+  // this function starts a new quiz session
   const startQuizSession = useCallback((quizId) => {
     const session = { userId: user.id, quizId };
     window.localStorage.setItem('aralna_active_quiz', JSON.stringify(session));
     setActiveQuizSession(session);
   }, [user]);
 
+  // this function clears the active quiz session
   const endQuizSession = useCallback(() => {
     window.localStorage.removeItem('aralna_active_quiz');
     setActiveQuizSession(null);
   }, []);
 
+  // this function checks who is logged in
   const checkAuth = useCallback(async () => {
     setAuthStatus('checking');
     try {
@@ -44,16 +51,20 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  // this effect checks auth on load
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
+  // this effect clears quiz sessions for the wrong user
   useEffect(() => {
     if (loading) return;
     if (!user || activeQuizSession?.userId !== user.id) endQuizSession();
   }, [user, loading]);
 
+  // this effect syncs the quiz session across tabs
   useEffect(() => {
+    // this function applies storage changes to the quiz session
     const syncQuizSession = (event) => {
       if (event.key !== 'aralna_active_quiz') return;
       try {
@@ -67,16 +78,19 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('storage', syncQuizSession);
   }, []);
 
+  // this effect keeps the user marked online
   useEffect(() => {
     if (!user) return undefined;
 
     let active = true;
+    // this function pings the presence endpoint
     const sendPresence = () => {
       if (document.visibilityState !== 'visible') return;
       api.post('/auth/presence').catch((err) => {
         if (active) console.error('Could not update online presence:', err.message);
       });
     };
+    // this function resends presence when the tab is visible
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') sendPresence();
     };
@@ -92,6 +106,7 @@ export function AuthProvider({ children }) {
     };
   }, [user]);
 
+  // this function handles the login
   async function login(email, password) {
     const data = await api.post('/auth/login', { email, password });
     setUser(data.user);
@@ -99,6 +114,7 @@ export function AuthProvider({ children }) {
     return data.user;
   }
 
+  // this function registers a new student
   async function register(form) {
     const data = await api.post('/auth/register', form);
     setUser(data.user);
@@ -106,16 +122,19 @@ export function AuthProvider({ children }) {
     return data.user;
   }
 
+  // this function uploads a new profile picture
   async function updateProfilePicture(file) {
     const data = await api.upload('/auth/profile-picture', file);
     setUser((currentUser) => currentUser ? { ...currentUser, profilePicture: data.profilePicture } : currentUser);
   }
 
+  // this function removes the profile picture
   async function removeProfilePicture() {
     const data = await api.delete('/auth/profile-picture');
     setUser((currentUser) => currentUser ? { ...currentUser, profilePicture: data.profilePicture } : currentUser);
   }
 
+  // this function logs the user out
   async function logout() {
     await api.post('/auth/logout');
     endQuizSession();

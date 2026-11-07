@@ -1,3 +1,4 @@
+// this file renders the admin shell with sidebar navigation
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';

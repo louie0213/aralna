@@ -1,3 +1,4 @@
+// this file shows a back button based on in-app navigation history
 import { useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 

@@ -1,3 +1,4 @@
+// this file animates route changes inside the app shell
 import { useLayoutEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 

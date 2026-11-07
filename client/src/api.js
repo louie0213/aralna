@@ -1,5 +1,7 @@
+// this file sends API requests to the backend and handles auth errors
 import { trackServerRequest } from './serverStatus.js';
 
+// this function sends a JSON API request
 async function request(path, { method = 'GET', body, signal } = {}) {
   const serverRequest = trackServerRequest();
   let res;
@@ -33,29 +35,38 @@ async function request(path, { method = 'GET', body, signal } = {}) {
 }
 
 export const api = {
+  // this function does a GET request
   get: (path, options) => request(path, options),
+  // this function does a POST request
   post: (path, body, options = {}) => request(path, { ...options, method: 'POST', body }),
+  // this function does a PATCH request
   patch: (path, body) => request(path, { method: 'PATCH', body }),
+  // this function does a DELETE request
   delete: (path) => request(path, { method: 'DELETE' }),
   // Uses XHR instead of fetch so upload progress can be reported.
+  // this function uploads a file with progress
   upload: (path, file, { onProgress, fields = {}, signal } = {}) =>
     new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       const serverRequest = trackServerRequest();
       let settled = false;
+      // this function clears upload listeners
       const cleanup = () => {
         signal?.removeEventListener('abort', abortRequest);
         xhr.onload = null;
         xhr.onerror = null;
         xhr.onabort = null;
       };
+      // this function finishes the upload promise once
       const settle = (handler, value) => {
         if (settled) return;
         settled = true;
         cleanup();
         handler(value);
       };
+      // this function builds an abort error
       const abortError = () => new DOMException('The operation was aborted.', 'AbortError');
+      // this function aborts the upload request
       const abortRequest = () => {
         xhr.abort();
         settle(reject, abortError());

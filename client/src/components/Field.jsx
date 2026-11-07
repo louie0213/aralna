@@ -1,3 +1,4 @@
+// this file renders a labeled form field with optional password reveal
 import { useState } from 'react';
 
 export default function Field({ label, name, error, type = 'text', ...rest }) {

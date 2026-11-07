@@ -1,3 +1,4 @@
+// this file configures the Vite build and dev server for the React client
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 

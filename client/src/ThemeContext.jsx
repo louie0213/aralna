@@ -1,7 +1,9 @@
+// this file stores light/dark theme and toggles it across the app
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 const ThemeContext = createContext(null);
 
+// this function reads the saved theme preference
 function getSavedTheme() {
   try {
     const savedTheme = window.localStorage.getItem('aralna-theme');
@@ -12,17 +14,21 @@ function getSavedTheme() {
   }
 }
 
+// this function reads the system light/dark preference
 function getSystemTheme() {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
+// this function provides theme state to the app
 export function ThemeProvider({ children }) {
+  // this function seeds theme from storage or system
   const [preferences, setPreferences] = useState(() => {
     const savedTheme = getSavedTheme();
     return { theme: savedTheme || getSystemTheme(), hasSavedTheme: savedTheme !== null };
   });
   const { theme, hasSavedTheme } = preferences;
 
+  // this effect applies the theme and watches system changes
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     const favicon = document.querySelector('link[rel="icon"]');
@@ -30,6 +36,7 @@ export function ThemeProvider({ children }) {
 
     if (hasSavedTheme) return undefined;
     const colorScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    // this function follows the system theme when nothing is saved
     const syncSystemTheme = (event) => {
       setPreferences((current) => ({ ...current, theme: event.matches ? 'dark' : 'light' }));
     };
@@ -41,6 +48,7 @@ export function ThemeProvider({ children }) {
     return () => colorScheme.removeListener(syncSystemTheme);
   }, [hasSavedTheme, theme]);
 
+  // this function toggles light and dark mode
   const toggleTheme = useCallback(() => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
     setPreferences({ theme: nextTheme, hasSavedTheme: true });
@@ -55,6 +63,7 @@ export function ThemeProvider({ children }) {
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
+// this function reads the theme context
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) throw new Error('useTheme must be used within ThemeProvider');

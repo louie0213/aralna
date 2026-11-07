@@ -1,3 +1,4 @@
+// this file manages student and admin user accounts
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../AuthContext.jsx';

@@ -1,3 +1,4 @@
+// this file adds scroll-linked parallax movement
 import { useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
 import { useMotionConfig } from "../../lib/motion.js";

@@ -1,3 +1,4 @@
+// this file renders the AralNa logo mark
 import { useTheme } from '../ThemeContext.jsx';
 import './Logo.css';
 

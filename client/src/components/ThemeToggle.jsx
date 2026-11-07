@@ -1,3 +1,4 @@
+// this file toggles light and dark theme
 import { useTheme } from '../ThemeContext.jsx';
 
 export default function ThemeToggle() {

@@ -1,3 +1,4 @@
+// this file handles admin user and stats routes
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';

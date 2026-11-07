@@ -1,3 +1,4 @@
+// this file lets admins create, assign, and review quizzes
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../api.js';
 import ConfirmDialog from '../../components/ConfirmDialog.jsx';

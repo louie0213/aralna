@@ -1,3 +1,4 @@
+// this file sets motion preferences based on device power
 import { useEffect } from 'react';
 
 function isLowPowerDevice() {

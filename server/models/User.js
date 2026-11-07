@@ -1,3 +1,4 @@
+// this file stores user accounts and profile data
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema(

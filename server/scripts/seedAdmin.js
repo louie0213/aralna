@@ -1,3 +1,4 @@
+// this file seeds the first admin account into the database
 import 'dotenv/config';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';

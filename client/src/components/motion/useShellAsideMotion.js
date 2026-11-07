@@ -1,9 +1,11 @@
+// this file shares sidebar open and collapse motion targets
 import { useMotionConfig } from "../../lib/motion.js";
 
 /**
  * Shared aside x targets for student/admin shells.
  * Desktop collapse and mobile drawer both use transform only.
  */
+// this hook shares sidebar open and collapse motion targets
 export function useShellAsideMotion({ isMobile, mobileMenuOpen, sidebarCollapsed }) {
   const { reducedMotion, transition } = useMotionConfig();
 

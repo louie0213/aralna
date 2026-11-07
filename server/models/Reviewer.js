@@ -1,3 +1,4 @@
+// this file stores generated reviewer content
 import mongoose from 'mongoose';
 
 const formulaExampleSchema = new mongoose.Schema(

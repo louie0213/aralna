@@ -1,8 +1,10 @@
+// this file handles taking a quiz attempt and showing scores
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, m } from 'motion/react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import { api } from '../api.js';
+import ConfirmDialog from '../components/ConfirmDialog.jsx';
 import { Reveal, MagneticButton } from '../components/motion';
 import { useMotionConfig } from '../lib/motion.js';
 
@@ -21,6 +23,7 @@ export default function Quiz() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [attemptStarted, setAttemptStarted] = useState(false);
+  const [confirmStart, setConfirmStart] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [error, setError] = useState('');
   const [submission, setSubmission] = useState(null);
@@ -111,8 +114,7 @@ export default function Quiz() {
   }
 
   function beginAttempt() {
-    const attemptNumber = attempts.length + 1;
-    if (!window.confirm(`Start attempt ${attemptNumber} of 5? Once you begin, navigation will be locked until you submit your answers.`)) return;
+    setConfirmStart(false);
     setError('');
     setSubmission(null);
     setAnswers({});
@@ -270,7 +272,7 @@ export default function Quiz() {
               ? `Your next attempt will be attempt ${attempts.length + 1} of 5. Confirm when you’re ready to begin.`
               : `You’re about to begin attempt ${attempts.length + 1} of 5. Your answers will be locked in until you submit.`}
           </p>
-          <MagneticButton as="button" className="btn btn-primary quiz-submit" type="button" onClick={beginAttempt}>
+          <MagneticButton as="button" className="btn btn-primary quiz-submit" type="button" onClick={() => setConfirmStart(true)}>
             Start attempt {attempts.length + 1}
           </MagneticButton>
         </Reveal>
@@ -294,6 +296,19 @@ export default function Quiz() {
           </ol>
         )}
       </Reveal>
+
+      <ConfirmDialog
+        open={confirmStart}
+        eyebrow="ASSESSMENT"
+        title={`Start attempt ${attempts.length + 1} of 5?`}
+        message="Once you begin, navigation will be locked until you submit your answers."
+        confirmLabel="Start attempt"
+        cancelLabel="Not yet"
+        tone="primary"
+        reverseActions
+        onCancel={() => setConfirmStart(false)}
+        onConfirm={beginAttempt}
+      />
     </div>
   );
 }

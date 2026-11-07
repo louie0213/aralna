@@ -1,3 +1,4 @@
+// this file animates page enter and exit on route changes
 import { AnimatePresence, m } from "motion/react";
 import { useLayoutEffect, useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";

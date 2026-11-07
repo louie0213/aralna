@@ -1,3 +1,4 @@
+// this file tracks and updates AI generation jobs
 import Generation from '../models/Generation.js';
 
 export const topicKeyOf = (topic) => topic.trim().toLowerCase().replace(/\s+/g, ' ');

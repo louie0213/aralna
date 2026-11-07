@@ -1,3 +1,4 @@
+// this file staggers child enter animations as a group
 import { useMotionConfig } from "../../lib/motion.js";
 import { motionTag } from "./motionTag.js";
 

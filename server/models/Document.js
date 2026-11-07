@@ -1,3 +1,4 @@
+// this file stores uploaded study document records
 import mongoose from 'mongoose';
 
 // The raw upload is deleted from disk right after text extraction (see routes/documents.js).

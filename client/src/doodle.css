@@ -1,3 +1,4 @@
+/* this file adds the doodle theme look and dark mode overrides */
 :root {
   --ink: #1f2a44;
   --ink-deep: #334261;
@@ -1360,6 +1361,13 @@ html[data-theme='dark'] :is(
 html[data-theme='dark'] :is(button, .btn, a) {
   transition: color 200ms ease, background-color 200ms ease, border-color 200ms ease;
 }
+html[data-theme='dark'] .shell-sidebar-collapse-toggle {
+  transition:
+    transform var(--shell-sidebar-transition-duration, 520ms) var(--shell-sidebar-transition-easing, cubic-bezier(0.4, 0, 0.2, 1)),
+    color 200ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease;
+}
 html[data-theme='dark'] :is(button, .btn):disabled,
 html[data-theme='dark'] :is(button, .btn)[aria-disabled='true'] {
   color: var(--text-muted);
@@ -1399,6 +1407,7 @@ html[data-theme='dark'] :is(button, .btn):active:not(:disabled) {
 html[data-theme='dark'] :is(
   .btn-ghost,
   .shell-collapse-toggle,
+  .shell-sidebar-collapse-toggle,
   .shell-menu-toggle,
   .theme-toggle,
   .reviewer-filter-dropdown > summary
@@ -1410,12 +1419,24 @@ html[data-theme='dark'] :is(
 html[data-theme='dark'] :is(
   .btn-ghost,
   .shell-collapse-toggle,
+  .shell-sidebar-collapse-toggle,
   .shell-menu-toggle,
   .theme-toggle,
   .reviewer-filter-dropdown > summary
 ):hover:not(:disabled) {
   color: var(--text-primary);
   background-color: color-mix(in srgb, var(--surface-raised) 78%, var(--accent));
+}
+html[data-theme='dark'] :is(
+  .btn-ghost,
+  .shell-collapse-toggle,
+  .shell-sidebar-collapse-toggle,
+  .shell-menu-toggle,
+  .theme-toggle,
+  .reviewer-filter-dropdown > summary
+):active:not(:disabled) {
+  color: var(--text-primary);
+  background-color: color-mix(in srgb, var(--surface-raised) 70%, var(--accent));
 }
 html[data-theme='dark'] .theme-toggle-thumb {
   color: var(--accent-on);

@@ -1,3 +1,4 @@
+// this file shows progress while AI generates a quiz
 import './QuizGeneratingLoader.css';
 
 const QUESTION_ROWS = [0, 1, 2, 3];

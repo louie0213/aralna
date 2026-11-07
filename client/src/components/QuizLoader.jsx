@@ -1,3 +1,4 @@
+// this file shows the quiz generating loading animation
 import { useEffect, useRef, useState } from 'react';
 import './QuizLoader.css';
 

@@ -1,3 +1,4 @@
+// this file demos the quiz loading animation
 import { useState } from 'react';
 import QuizLoader from '../components/QuizLoader.jsx';
 

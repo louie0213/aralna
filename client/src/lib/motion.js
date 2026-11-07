@@ -1,3 +1,4 @@
+// this file shares motion timings, springs, and animation variants
 /**
  * Shared motion system — single source of truth for timing, springs, and variants.
  * Import from here in every animated component. Do not hardcode durations/easings elsewhere.

@@ -1,3 +1,4 @@
+/* this file styles the admin and student sidebar shell */
 .shell-admin, .shell-student {
   --shell-sidebar-width: 272px;
   --shell-sidebar-transition-duration: 520ms;
@@ -138,10 +139,14 @@
     border-radius: 0 12px 12px 0;
     box-shadow: 3px 3px 0 var(--doodle-shadow);
     cursor: pointer;
-    transform: translateY(-50%);
-    transition: left var(--shell-sidebar-transition-duration) var(--shell-sidebar-transition-easing), color 140ms ease, background-color 140ms ease;
+    transform: translate3d(0, -50%, 0);
+    transition:
+      transform var(--shell-sidebar-transition-duration) var(--shell-sidebar-transition-easing),
+      color 140ms ease,
+      background-color 140ms ease,
+      border-color 140ms ease;
   }
-  .shell-sidebar-collapse-toggle:hover { color: var(--ink); background: var(--study-panel); }
+  .shell-sidebar-collapse-toggle:hover { color: var(--text); background: var(--study-panel); }
   .shell-sidebar-collapse-toggle:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
   .shell-sidebar-collapse-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .shell-collapsed .admin-sidebar {
@@ -154,7 +159,9 @@
     margin-right: max(0px, calc((100% - 1440px) / 2));
     margin-left: max(0px, calc((100% - 1440px) / 2));
   }
-  .shell-collapsed .shell-sidebar-collapse-toggle { left: 0; }
+  .shell-collapsed .shell-sidebar-collapse-toggle {
+    transform: translate3d(calc(-1 * var(--shell-sidebar-width)), -50%, 0);
+  }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {

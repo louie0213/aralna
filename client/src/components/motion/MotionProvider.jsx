@@ -1,3 +1,4 @@
+// this file provides LazyMotion so animations load once for the app
 import { LazyMotion, domAnimation } from "motion/react";
 
 /**

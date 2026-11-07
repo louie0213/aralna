@@ -1,8 +1,10 @@
+// this file validates request input before saving data
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Accept strings only. This blocks NoSQL injection such as { "email": { "$ne": "" } }.
+// this helper trims strings and blocks non-string input
 export const str = (v) => (typeof v === 'string' ? v.trim() : '');
 
+// this function checks signup name, email, and password
 export function validateAccount({ fullName, email, password }) {
   const errors = {};
   if (!fullName) errors.fullName = 'Enter your name.';

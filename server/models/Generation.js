@@ -1,3 +1,4 @@
+// this file stores AI generation job status and results
 import mongoose from 'mongoose';
 
 export const GENERATION_TYPES = ['quiz', 'flashcards', 'summary'];

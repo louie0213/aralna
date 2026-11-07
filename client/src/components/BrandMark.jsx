@@ -1,3 +1,4 @@
+// this file renders the brand icon mark svg
 export default function BrandMark({ className }) {
   return (
     <svg className={className} viewBox="0 0 100 100" aria-hidden="true" focusable="false">

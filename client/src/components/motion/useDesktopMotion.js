@@ -1,3 +1,4 @@
+// this file enables heavy motion only on desktop with full motion prefs
 import { useEffect, useState } from "react";
 import { usePrefersReducedMotion } from "../../lib/motion.js";
 

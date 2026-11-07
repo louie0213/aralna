@@ -1,3 +1,4 @@
+// this file stores student quiz attempt scores
 import mongoose from 'mongoose';
 
 const submittedAnswerSchema = new mongoose.Schema(

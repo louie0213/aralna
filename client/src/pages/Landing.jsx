@@ -1,3 +1,4 @@
+// this file shows the public marketing landing page
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';

@@ -1,3 +1,4 @@
+// this file lists admin sidebar navigation items and icons
 export const ADMIN_NAV_ITEMS = [
   { label: 'Overview', icon: 'overview', path: '/admin', end: true, roles: ['super_admin', 'admin'] },
   { label: 'Users', icon: 'users', path: '/admin/users', roles: ['super_admin', 'admin'] },

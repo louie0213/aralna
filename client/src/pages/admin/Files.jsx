@@ -1,3 +1,4 @@
+// this file lets admins browse uploaded documents
 import { useEffect, useState } from 'react';
 import { api } from '../../api.js';
 import { Reveal } from '../../components/motion';

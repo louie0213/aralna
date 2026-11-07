@@ -1,3 +1,4 @@
+// this file shows a waiting card while the server wakes up
 import { useEffect, useState } from 'react';
 import './ServerWaitingCard.css';
 

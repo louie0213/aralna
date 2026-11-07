@@ -1,3 +1,4 @@
+// this file re-exports shared motion components
 export { default as MotionProvider } from "./MotionProvider.jsx";
 export { default as Reveal } from "./Reveal.jsx";
 export { StaggerGroup, StaggerItem } from "./StaggerGroup.jsx";

@@ -1,3 +1,4 @@
+// this file handles creating a new admin account
 import { useState } from 'react';
 import Field from '../../components/Field.jsx';
 import { api } from '../../api.js';

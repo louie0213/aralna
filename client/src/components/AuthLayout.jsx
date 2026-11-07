@@ -1,3 +1,4 @@
+// this file wraps login and register pages with branded layout
 import { Link } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle.jsx';
 import Logo from './Logo.jsx';

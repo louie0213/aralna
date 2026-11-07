@@ -1,3 +1,4 @@
+// this file asks AI to generate practice quiz questions
 import Groq from 'groq-sdk';
 
   const MAX_INPUT_CHARS = 12000;

@@ -1,3 +1,4 @@
+// this file extracts text from uploaded study files
 import fs from 'fs/promises';
 import { createCanvas } from '@napi-rs/canvas';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';

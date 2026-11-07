@@ -1,3 +1,4 @@
+// this file shows an interactive code practice console
 import { useState } from 'react';
 import './InteractiveCodeConsole.css';
 

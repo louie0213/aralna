@@ -1,3 +1,4 @@
+// this file handles uploading study documents
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, m } from 'motion/react';

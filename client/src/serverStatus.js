@@ -1,3 +1,4 @@
+// this file tracks whether the backend server is reachable
 const listeners = new Set();
 let status = 'idle';
 

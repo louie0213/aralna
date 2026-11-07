@@ -1,3 +1,4 @@
+// this file starts the Express API server and connects middleware
 import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
@@ -23,6 +24,7 @@ app.use(cors({ origin: CLIENT_URL, credentials: true }));
 app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
 
+// this function checks that the API is up
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -30,7 +32,9 @@ app.use('/api/documents', documentRoutes);
 app.use('/api/reviewers', reviewerRoutes);
 app.use('/api/quizzes', quizRoutes);
 
+// this function returns a 404 for unknown routes
 app.use((req, res) => res.status(404).json({ message: 'Route not found.' }));
+// this middleware catches unexpected server errors
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ message: 'Something went wrong on the server. Try again.' });
@@ -38,7 +42,10 @@ app.use((err, req, res, next) => {
 
 mongoose
   .connect(MONGO_URI)
-  .then(() => app.listen(PORT, () => console.log(`API running on http://localhost:${PORT}`)))
+  .then(() =>
+    // this function starts listening once MongoDB is connected
+    app.listen(PORT, () => console.log(`API running on http://localhost:${PORT}`))
+  )
   .catch((err) => {
     console.error('MongoDB connection failed:', err.message);
     process.exit(1);

@@ -1,3 +1,4 @@
+// this file asks AI to generate reviewer notes and flashcards
 import Groq from 'groq-sdk';
 
 const MAX_INPUT_CHARS = 12000;

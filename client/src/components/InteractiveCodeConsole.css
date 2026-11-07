@@ -1,3 +1,4 @@
+/* this file styles the interactive code console */
 .interactive-code-console {
   margin: 28px 0;
   padding: clamp(16px, 3vw, 24px);

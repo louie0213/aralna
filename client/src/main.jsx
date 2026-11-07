@@ -1,3 +1,4 @@
+// this file boots the React app and mounts it to the page
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';

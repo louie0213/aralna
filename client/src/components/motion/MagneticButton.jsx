@@ -1,3 +1,4 @@
+// this file makes buttons magnetically follow the cursor
 import { useMotionValue, useSpring } from "motion/react";
 import { useRef } from "react";
 import { springs, useMotionConfig } from "../../lib/motion.js";

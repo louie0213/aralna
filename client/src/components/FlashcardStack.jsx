@@ -1,3 +1,4 @@
+// this file shows a flipable flashcard stack for studying
 import { useEffect, useRef, useState } from 'react';
 
 export default function FlashcardStack({ cards }) {
